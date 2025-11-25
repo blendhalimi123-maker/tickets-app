@@ -35,8 +35,8 @@ class TicketController extends Controller
             'stadium'  => 'required|string|max:255',
             'seat_info' => 'required|string|max:255',
             'price' =>  'required|numeric',
-
         ]);
+
         Ticket::create([
             'user_id' => auth()->id(),
             'title' => $request->title,
@@ -44,8 +44,6 @@ class TicketController extends Controller
             'stadium' => $request->stadium,
             'seat_info' => $request->seat_info,
             'price' => $request->price,
-            
-
         ]);
         return redirect()->route('ticket.index')->with('success', 'Ticket created successfully!');
 
@@ -80,12 +78,11 @@ class TicketController extends Controller
             'seat_info' => 'required|string|max:255',
             'price' =>  'required|numeric',
             'is_available' => 'required|boolean'
-
         ]);
+
         $ticket->update($request->all());
         return redirect()->route('ticket.index')->with('success','Ticket updated successfully!');
-
-       
+    
     }
 
 
@@ -95,7 +92,7 @@ class TicketController extends Controller
     public function destroy(Ticket $ticket)
     {
         $ticket->delete();
-        return redricet()->route('ticekt.index')->with('success',' Ticket delted succefully');
+        return redirect()->route('ticekt.index')->with('success',' Ticket delted succefully');
         
     }
 }
