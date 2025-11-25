@@ -38,14 +38,14 @@ class TicketController extends Controller
         ]);
 
         Ticket::create([
-            'user_id' => auth()->id(),
+            'user_id' => 1,
             'title' => $request->title,
             'game_date'=> $request->game_date,
             'stadium' => $request->stadium,
             'seat_info' => $request->seat_info,
             'price' => $request->price,
         ]);
-        return redirect()->route('ticket.index')->with('success', 'Ticket created successfully!');
+        return redirect()->route('tickets.index')->with('success', 'Ticket created successfully!');
 
 
     }
@@ -81,7 +81,7 @@ class TicketController extends Controller
         ]);
 
         $ticket->update($request->all());
-        return redirect()->route('ticket.index')->with('success','Ticket updated successfully!');
+        return redirect()->route('tickets.index')->with('success','Ticket updated successfully!');
     
     }
 
@@ -92,7 +92,7 @@ class TicketController extends Controller
     public function destroy(Ticket $ticket)
     {
         $ticket->delete();
-        return redirect()->route('ticekt.index')->with('success',' Ticket delted succefully');
+        return redirect()->route('tickets.index')->with('success',' Ticket delted succefully');
         
     }
 }

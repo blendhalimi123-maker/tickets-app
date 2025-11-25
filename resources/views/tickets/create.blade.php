@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-@section('content')
-    @extends('layouts.app')
 
     @section('content')
         <h1>Create Ticket</h1>
@@ -55,15 +53,3 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-@endsection
