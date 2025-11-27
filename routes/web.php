@@ -32,15 +32,15 @@ Route::post('/register', [RegisterController::class, 'register'])->name('registe
 // Ticket routes
 // -------------------------
 
+// Admin-only: full CRUD (create, edit, update, delete)
+Route::middleware([RoleMiddleware::class.':admin'])->group(function () {
+    Route::resource('tickets', TicketController::class)->except(['index', 'show']);
+});
+
 // Tickets index & show — accessible by admin and user
 Route::middleware([RoleMiddleware::class.':user,admin'])->group(function () {
     Route::get('tickets', [TicketController::class, 'index'])->name('tickets.index');
     Route::get('tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
-});
-
-// Admin-only: full CRUD (create, edit, update, delete)
-Route::middleware([RoleMiddleware::class.':admin'])->group(function () {
-    Route::resource('tickets', TicketController::class)->except(['index', 'show']);
 });
 
 // -------------------------

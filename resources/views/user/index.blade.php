@@ -1,25 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>User Dashboard</title>
-    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-</head>
-<body class="bg-gray-100 p-8">
+@extends('layouts.app')
 
-    <div class="max-w-3xl mx-auto bg-white rounded shadow p-6">
-        <h1 class="text-2xl font-bold mb-4">Welcome {{ auth()->user()->name }}</h1>
-        <p class="mb-6">View and buy tickets here.</p>
+@section('content')
+<div class="container py-5">
 
-        <a href="{{ route('tickets.index') }}" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition">Tickets</a>
-
-        <form method="POST" action="{{ route('logout') }}" class="mt-4">
-            @csrf
-            <button type="submit" class="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition">
-                Logout
-            </button>
-        </form>
+    <!-- Welcome Message -->
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">Welcome, {{ auth()->user()->name }}!</h1>
+        <p class="text-muted fs-5">View and buy tickets here.</p>
     </div>
 
-</body>
-</html>
+    <!-- Dashboard Cards -->
+    <div class="row g-4 mb-5 justify-content-center">
+
+        <!-- Tickets Card -->
+        <div class="col-md-4">
+            <div class="card shadow-sm rounded-4 p-4 text-center h-100">
+                <div class="mb-3">
+                    <i class="bi bi-ticket-perforated-fill fs-1 text-primary"></i>
+                </div>
+                <h5 class="text-muted mb-2">Tickets</h5>
+                <p>Browse events and purchase tickets easily.</p>
+                <a href="{{ route('tickets.index') }}" class="btn btn-primary btn-lg mt-3">View Tickets</a>
+            </div>
+        </div>
+
+        <!-- Logout Card -->
+        <div class="col-md-4">
+            <div class="card shadow-sm rounded-4 p-4 text-center h-100">
+                <div class="mb-3">
+                    <i class="bi bi-box-arrow-right fs-1 text-danger"></i>
+                </div>
+                <h5 class="text-muted mb-2">Logout</h5>
+                <p>Securely log out of your account.</p>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="btn btn-danger btn-lg mt-3">Logout</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Optional: Add more cards for stats, recent tickets, etc. -->
+</div>
+@endsection

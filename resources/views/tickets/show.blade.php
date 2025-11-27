@@ -1,63 +1,56 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-md mx-auto my-10">
-    <div class="relative bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-300">
-
-        <!-- Left perforated lines -->
-        <div class="absolute -left-2 top-2 bottom-2 flex flex-col justify-between space-y-2">
-            <span class="block w-1 h-4 bg-gray-300 rounded-full"></span>
-            <span class="block w-1 h-4 bg-gray-300 rounded-full"></span>
-            <span class="block w-1 h-4 bg-gray-300 rounded-full"></span>
-            <span class="block w-1 h-4 bg-gray-300 rounded-full"></span>
-        </div>
-
-        <!-- Right perforated lines -->
-        <div class="absolute -right-2 top-2 bottom-2 flex flex-col justify-between space-y-2">
-            <span class="block w-1 h-4 bg-gray-300 rounded-full"></span>
-            <span class="block w-1 h-4 bg-gray-300 rounded-full"></span>
-            <span class="block w-1 h-4 bg-gray-300 rounded-full"></span>
-            <span class="block w-1 h-4 bg-gray-300 rounded-full"></span>
-        </div>
+<div class="container py-5 d-flex justify-content-center">
+    <div class="card shadow-lg rounded-4 position-relative" style="max-width: 700px; width: 100%; overflow: hidden;">
 
         <!-- Header -->
-        <div class="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-6 py-4">
-            <h2 class="text-2xl font-bold">{{ $ticket->title }}</h2>
-            <p class="text-sm mt-1">Event Ticket</p>
+        <div class="text-center text-white py-5" style="background: linear-gradient(135deg, #0d6efd, #6610f2);">
+            <h1 class="fw-bold display-3 mb-3">{{ $ticket->title }}</h1>
+            <p class="mb-2 fs-5">{{ \Carbon\Carbon::parse($ticket->game_date)->format('l, M d, Y H:i') }}</p>
+            <p class="mb-0 fs-5">{{ $ticket->stadium }}</p>
         </div>
 
-        <!-- Ticket body -->
-        <div class="px-6 py-4 divide-y divide-gray-200">
-            <div class="flex justify-between py-2">
-                <span class="font-semibold text-gray-700">Date:</span>
-                <span class="text-gray-800">{{ \Carbon\Carbon::parse($ticket->game_date)->format('M d, Y H:i') }}</span>
+        <!-- Ticket Body -->
+        <div class="p-5 text-center bg-light">
+
+            <div class="mb-4">
+                <h4 class="fw-bold">Seat</h4>
+                <p class="fs-5">{{ $ticket->seat_info }}</p>
             </div>
-            <div class="flex justify-between py-2 bg-gray-50 px-2 rounded-md my-1">
-                <span class="font-semibold text-gray-700">Stadium:</span>
-                <span class="text-gray-800">{{ $ticket->stadium }}</span>
+
+            <div class="mb-4">
+                <h4 class="fw-bold">Price</h4>
+                <p class="fs-5">${{ $ticket->price }}</p>
             </div>
-            <div class="flex justify-between py-2">
-                <span class="font-semibold text-gray-700">Seat:</span>
-                <span class="text-gray-800">{{ $ticket->seat_info }}</span>
-            </div>
-            <div class="flex justify-between py-2 bg-gray-50 px-2 rounded-md my-1">
-                <span class="font-semibold text-gray-700">Price:</span>
-                <span class="text-gray-800">${{ $ticket->price }}</span>
+
+            <div class="mb-4">
+                <h4 class="fw-bold">Status</h4>
+                <span class="badge {{ $ticket->is_available ? 'bg-success' : 'bg-danger' }} fs-6 p-2">
+                    {{ $ticket->is_available ? 'Available' : 'Sold' }}
+                </span>
             </div>
         </div>
 
-        <!-- Status badge -->
-        <div class="absolute top-4 right-4">
-            <span class="px-3 py-1 rounded-full text-sm font-semibold {{ $ticket->is_available ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800' }}">
-                {{ $ticket->is_available ? 'Available' : 'Sold' }}
-            </span>
+        <!-- QR Code Bottom Right -->
+        <div class="position-absolute" style="bottom: 20px; right: 20px;">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data={{ route('tickets.show', $ticket->id) }}" 
+                 alt="QR Code" class="img-fluid rounded shadow-sm">
         </div>
 
-        <!-- Footer -->
-        <div class="bg-gray-50 px-6 py-4 text-center border-t border-gray-200">
-            <p class="text-gray-400 text-sm">Scan at entrance</p>
+        <!-- Perforated footer -->
+        <div class="bg-secondary text-white text-center py-2 mt-3" style="border-top: 2px dashed #fff;">
+            Ticket ID: {{ $ticket->id }}
         </div>
     </div>
 </div>
-@endsection
 
+<!-- Hover effect -->
+<style>
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 30px rgba(0,0,0,0.25);
+    transition: all 0.3s ease;
+}
+</style>
+@endsection

@@ -1,40 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Admin Dashboard</title>
-    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-</head>
-<body class="bg-gray-100 p-8">
+@extends('layouts.app')
 
-<div class="max-w-3xl mx-auto bg-white rounded shadow p-6">
-    <!-- Header -->
-    <h1 class="text-2xl font-bold mb-4">Welcome Admin, {{ auth()->user()->name }}</h1>
-    <p class="mb-6">Manage tickets here.</p>
+@section('content')
+<div class="container py-5">
 
-    <!-- Buttons -->
-    <div class="space-y-4">
-        <!-- Manage Tickets -->
-        <a href="{{ route('tickets.index') }}" 
-           class="block bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition">
-            Manage Tickets
-        </a>
-
-        <!-- Placeholder for future features (users etc.) -->
-        {{-- <a href="{{ route('admin.users') }}" 
-           class="block bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition">
-            Manage Users
-        </a> --}}
+    <!-- Welcome Header -->
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">Welcome Admin, {{ auth()->user()->name }}</h1>
+        <p class="text-muted">Manage tickets and view all system activity here.</p>
     </div>
 
-    <!-- Logout -->
-    <form method="POST" action="{{ route('logout') }}" class="mt-6">
-        @csrf
-        <button type="submit" class="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition">
-            Logout
-        </button>
-    </form>
-</div>
+    <!-- Quick Actions -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <a href="{{ route('tickets.index') }}" class="card shadow-sm border-0 text-center text-decoration-none p-4 h-100">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">Manage Tickets</h5>
+                    <p class="card-text text-muted">Create, edit, and delete tickets.</p>
+                </div>
+            </a>
+        </div>
+        {{-- Uncomment if you want a "Manage Users" card in the future --}}
+        {{-- <div class="col-md-6">
+            <a href="{{ route('admin.users') }}" class="card shadow-sm border-0 text-center text-decoration-none p-4 h-100">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">Manage Users</h5>
+                    <p class="card-text text-muted">View and edit system users.</p>
+                </div>
+            </a>
+        </div> --}}
+    </div>
 
-</body>
-</html>
+    <!-- Logout Button -->
+    <div class="text-center mt-4">
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="btn btn-danger btn-lg">
+                Logout
+            </button>
+        </form>
+    </div>
+
+</div>
+@endsection

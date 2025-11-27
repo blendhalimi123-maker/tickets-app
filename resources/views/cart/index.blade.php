@@ -1,24 +1,19 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto py-10 px-4">
+<div class="container py-5">
+    <h1 class="text-center fw-bold mb-5">Your Shopping Cart</h1>
 
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">Your Shopping Cart</h1>
-
-    <!-- Success message -->
     @if(session('success'))
-        <div class="mb-4 p-4 bg-green-100 text-green-800 rounded">
-            {{ session('success') }}
-        </div>
+        <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
     @if($cartItems->isEmpty())
-        <div class="p-6 bg-yellow-100 text-yellow-800 rounded">
-            Your cart is empty. <a href="{{ route('tickets.index') }}" class="underline text-blue-600">Browse tickets</a>.
+        <div class="alert alert-warning text-center">
+            Your cart is empty. <a href="{{ route('tickets.index') }}" class="text-decoration-underline">Browse tickets</a>.
         </div>
     @else
-        <div class="space-y-6">
-
+        <div class="row g-4">
             @php $total = 0; @endphp
 
             @foreach($cartItems as $cart)
@@ -28,57 +23,52 @@
                     $total += $itemTotal;
                 @endphp
 
-                <div class="flex justify-between items-center bg-white shadow rounded-lg p-4">
-                    
-                    <!-- Ticket info -->
-                    <div>
-                        <h2 class="text-xl font-bold">{{ $ticket->title }}</h2>
-                        <p class="text-sm text-gray-600">Date: {{ \Carbon\Carbon::parse($ticket->game_date)->format('M d, Y H:i') }}</p>
-                        <p class="text-sm text-gray-600">Stadium: {{ $ticket->stadium }}</p>
-                        <p class="text-sm text-gray-600">Seat: {{ $ticket->seat_info }}</p>
-                        <p class="text-sm font-semibold text-gray-800">Price: ${{ $ticket->price }}</p>
-                    </div>
+                <div class="col-12">
+                    <div class="card shadow-sm rounded-4 border-0 p-3 d-flex flex-column flex-md-row align-items-center">
+                        
+                        <!-- Ticket Info -->
+                        <div class="flex-grow-1">
+                            <h4 class="fw-bold mb-1">{{ $ticket->title }}</h4>
+                            <p class="mb-1 text-muted"><i class="bi bi-calendar-event"></i> {{ \Carbon\Carbon::parse($ticket->game_date)->format('M d, Y H:i') }}</p>
+                            <p class="mb-1 text-muted"><i class="bi bi-geo-alt"></i> {{ $ticket->stadium }}</p>
+                            <p class="mb-1 text-muted"><i class="bi bi-door-open"></i> Seat: {{ $ticket->seat_info }}</p>
+                            <p class="fw-semibold mb-0">Price: ${{ $ticket->price }}</p>
+                        </div>
 
-                    <!-- Quantity & actions -->
-                    <div class="flex items-center space-x-2">
-                        <!-- Update quantity form -->
-                        <form action="{{ route('cart.update', $cart->id) }}" method="POST" class="flex items-center space-x-2">
-                            @csrf
-                            <input type="number" name="quantity" value="{{ $cart->quantity }}" min="1" class="w-16 p-1 border rounded text-center">
-                            <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Update</button>
-                        </form>
+                        <!-- Quantity & Actions -->
+                        <div class="d-flex flex-column align-items-center gap-2 mt-3 mt-md-0">
+                            <form action="{{ route('cart.update', $cart->id) }}" method="POST" class="d-flex gap-2">
+                                @csrf
+                                <input type="number" name="quantity" value="{{ $cart->quantity }}" min="1" class="form-control form-control-sm" style="width:70px;">
+                                <button type="submit" class="btn btn-outline-primary btn-sm">Update</button>
+                            </form>
 
-                        <!-- Remove from cart -->
-                        <form action="{{ route('cart.remove', $cart->id) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600" onclick="return confirm('Remove this ticket from cart?')">
-                                Remove
-                            </button>
-                        </form>
-                    </div>
+                            <form action="{{ route('cart.remove', $cart->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Remove this ticket from cart?')">
+                                    Remove
+                                </button>
+                            </form>
+                        </div>
 
-                    <!-- Item total -->
-                    <div class="text-right font-semibold">
-                        ${{ $itemTotal }}
+                        <!-- Item Total -->
+                        <div class="ms-md-3 mt-3 mt-md-0 text-end fw-bold fs-5">
+                            ${{ $itemTotal }}
+                        </div>
                     </div>
                 </div>
             @endforeach
+        </div>
 
-            <!-- Cart total -->
-            <div class="flex justify-end mt-6">
-                <div class="text-xl font-bold">
-                    Total: ${{ $total }}
-                </div>
-            </div>
-
-            <!-- Checkout button -->
-            <div class="flex justify-end mt-4">
-                <a href="#" class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                    Proceed to Checkout
-                </a>
+        <!-- Cart Summary -->
+        <div class="d-flex justify-content-end mt-4">
+            <div class="card shadow-sm p-4 rounded-4" style="max-width: 320px; background: #f8f9fa;">
+                <h5 class="fw-bold mb-3">Cart Summary</h5>
+                <p class="mb-1">Items: {{ $cartItems->count() }}</p>
+                <p class="mb-3 fs-5 fw-semibold">Total: ${{ $total }}</p>
+                <a href="#" class="btn btn-success w-100 fw-bold">Proceed to Checkout</a>
             </div>
         </div>
     @endif
-
 </div>
 @endsection

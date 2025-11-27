@@ -4,69 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tickets App</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Optional custom CSS -->
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
-<body class="bg-gradient-to-r from-purple-50 via-pink-50 to-yellow-50 font-sans text-gray-800 min-h-screen flex flex-col">
+<body class="d-flex flex-column min-vh-100">
 
     <!-- Navbar -->
-    <nav class="bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600 text-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-            <a href="{{ route('tickets.index') }}" class="text-2xl font-bold hover:text-yellow-200 transition">
-                TicketsApp
-            </a>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow sticky-top">
+        <div class="container">
+            <a class="navbar-brand text-primary fw-bold fs-3" href="{{ route('tickets.index') }}">TicketsApp</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('tickets.index') }}">Home</a>
+                    </li>
 
-            <div class="flex items-center space-x-4">
-                <a href="{{ route('tickets.index') }}" class="font-semibold hover:text-yellow-200 transition">Home</a>
+                    <!-- Admin-only: Create Ticket -->
+                    @if(auth()->check() && auth()->user()->isAdmin())
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('tickets.create') }}">Create Ticket</a>
+                    </li>
+                    @endif
 
-                <!-- Admin-only: Create Ticket -->
-                @if(auth()->check() && auth()->user()->isAdmin())
-                    <a href="{{ route('tickets.create') }}" class="font-semibold hover:text-yellow-200 transition">
-                        Create Ticket
-                    </a>
-                @endif
-
-                <!-- User-only: Shopping Cart -->
-                @if(auth()->check() && auth()->user()->isUser())
-                    <a href="{{ route('cart.index') }}" class="relative font-semibold hover:text-yellow-200 transition">
-                        🛒 Cart
-                        @php
-                            $cartCount = auth()->user()->cartCount();
-                        @endphp
-                        @if($cartCount > 0)
-                            <span class="absolute -top-2 -right-3 bg-red-500 text-white text-xs rounded-full px-1">
+                    <!-- User-only: Shopping Cart -->
+                    @if(auth()->check() && auth()->user()->isUser())
+                    <li class="nav-item position-relative">
+                        <a class="nav-link" href="{{ route('cart.index') }}">
+                            🛒 Cart
+                            @php
+                                $cartCount = auth()->user()->cartCount();
+                            @endphp
+                            @if($cartCount > 0)
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                                 {{ $cartCount }}
                             </span>
-                        @endif
-                    </a>
-                @endif
+                            @endif
+                        </a>
+                    </li>
+                    @endif
 
-                <!-- Auth links -->
-                @guest
-                    <a href="{{ route('login') }}" class="font-semibold hover:text-yellow-200 transition">Login</a>
-                    <a href="{{ route('register') }}" class="font-semibold hover:text-yellow-200 transition">Register</a>
-                @else
-                    <form method="POST" action="{{ route('logout') }}" class="inline">
-                        @csrf
-                        <button type="submit" class="font-semibold hover:text-yellow-200 transition">
-                            Logout
-                        </button>
-                    </form>
-                @endguest
+                    <!-- Auth links -->
+                    @guest
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('login') }}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('register') }}">Register</a>
+                    </li>
+                    @else
+                    <li class="nav-item">
+                        <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-link nav-link p-0">Logout</button>
+                        </form>
+                    </li>
+                    @endguest
+                </ul>
             </div>
         </div>
     </nav>
 
     <!-- Main content -->
-    <main class="flex-1 max-w-7xl mx-auto px-4 py-6">
-        <div class="bg-white shadow rounded-lg p-6">
+    <main class="flex-grow-1 container my-5">
+        <div class="bg-white shadow rounded-3 p-4 border">
             @yield('content')
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gradient-to-r from-pink-200 via-purple-300 to-blue-200 py-4 text-center text-gray-800 mt-6">
+    <footer class="bg-light text-center text-muted py-4 mt-auto">
         &copy; {{ date('Y') }} Tickets App. All rights reserved.
     </footer>
 
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('js/app.js') }}"></script>
 </body>
 </html>

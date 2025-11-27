@@ -3,53 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <title>Register</title>
-    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #fce7f3, #e0e7ff);
+        }
+        .card {
+            border-radius: 1rem;
+        }
+        .btn-success {
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
+<body class="d-flex align-items-center justify-content-center vh-100">
 
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h1 class="text-2xl font-bold mb-6 text-center">Register</h1>
+<div class="card shadow-sm p-5" style="width: 100%; max-width: 400px;">
+    <h2 class="text-center mb-4 fw-bold">Welcome!</h2>
+    <p class="text-center text-muted mb-4">Create your account and start exploring amazing events.</p>
 
-        @if($errors->any())
-            <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
-                <ul>
-                    @foreach($errors->all() as $error)
-                        <li class="text-sm">{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+    @if($errors->any())
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-        <form method="POST" action="{{ route('register.submit') }}" class="space-y-4">
-            @csrf
-            <div>
-                <label class="block mb-1 font-medium">Name</label>
-                <input type="text" name="name" class="w-full border rounded px-3 py-2" required>
-            </div>
+    <form method="POST" action="{{ route('register.submit') }}">
+        @csrf
 
-            <div>
-                <label class="block mb-1 font-medium">Email</label>
-                <input type="email" name="email" class="w-full border rounded px-3 py-2" required>
-            </div>
+        <div class="mb-3">
+            <input type="text" name="name" class="form-control form-control-lg @error('name') is-invalid @enderror" placeholder="Full Name" value="{{ old('name') }}" required>
+            @error('name')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
 
-            <div>
-                <label class="block mb-1 font-medium">Password</label>
-                <input type="password" name="password" class="w-full border rounded px-3 py-2" required>
-            </div>
+        <div class="mb-3">
+            <input type="email" name="email" class="form-control form-control-lg @error('email') is-invalid @enderror" placeholder="Email Address" value="{{ old('email') }}" required>
+            @error('email')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
 
-            <div>
-                <label class="block mb-1 font-medium">Confirm Password</label>
-                <input type="password" name="password_confirmation" class="w-full border rounded px-3 py-2" required>
-            </div>
+        <div class="mb-3">
+            <input type="password" name="password" class="form-control form-control-lg @error('password') is-invalid @enderror" placeholder="Password" required>
+            @error('password')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
 
-            <button type="submit" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition">
-                Register
-            </button>
-        </form>
+        <div class="mb-4">
+            <input type="password" name="password_confirmation" class="form-control form-control-lg" placeholder="Confirm Password" required>
+        </div>
 
-        <p class="mt-4 text-center text-sm">
-            Already have an account? <a href="{{ route('login') }}" class="text-blue-600 hover:underline">Login here</a>
+        <div class="d-grid mb-3">
+            <button type="submit" class="btn btn-success btn-lg">Register</button>
+        </div>
+
+        <p class="text-center text-muted mb-0">
+            Already have an account? <a href="{{ route('login') }}" class="text-success fw-bold">Login</a>
         </p>
-    </div>
+    </form>
+</div>
 
+<!-- Bootstrap 5 JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+</html>

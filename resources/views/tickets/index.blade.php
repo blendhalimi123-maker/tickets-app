@@ -1,105 +1,69 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="max-w-7xl mx-auto py-10 px-4">
+<div class="container py-5">
+    <h1 class="text-center fw-bold mb-5">Tickets Available</h1>
 
-        <!-- Header -->
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">All Tickets</h1>
+    <div class="row g-4">
+        @foreach($tickets as $ticket)
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
 
-            <!-- Admin-only: Create Ticket -->
-            @if(auth()->check() && auth()->user()->isAdmin())
-                <a href="{{ route('tickets.create') }}"
-                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-                    Create New Ticket
-                </a>
-            @endif
-        </div>
-
-        <!-- Success message -->
-        @if(session('success'))
-            <div class="mb-4 p-4 bg-green-100 text-green-800 rounded">
-                {{ session('success') }}
-            </div>
-        @endif
-
-        <!-- Ticket cards -->
-        <div class="space-y-6">
-            @foreach($tickets as $ticket)
-                <div
-                    class="relative bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl shadow-lg overflow-hidden border-l-4 border-blue-700">
-
-                    <!-- Decorative lines on left -->
-                    <div class="absolute left-0 top-0 bottom-0 w-1 flex flex-col justify-around space-y-2 p-1">
-                        <span class="block w-full h-1 bg-white rounded"></span>
-                        <span class="block w-full h-1 bg-white rounded"></span>
-                        <span class="block w-full h-1 bg-white rounded"></span>
-                        <span class="block w-full h-1 bg-white rounded"></span>
+                    <!-- Ticket Header -->
+                    <div class="p-4 text-center text-dark" 
+                         style="background: linear-gradient(135deg, #cfe2ff, #9ec5fe);">
+                        <h2 class="fw-bold mb-2" style="font-size: 1.8rem;">
+                            {{ $ticket->title }}
+                        </h2>
+                        <small class="d-block mb-1">{{ \Carbon\Carbon::parse($ticket->game_date)->format('M d, Y H:i') }}</small>
+                        <small class="d-block">{{ $ticket->stadium }}</small>
                     </div>
 
-                    <!-- Ticket content -->
-                    <div class="p-6 ml-6">
-                        <h2 class="text-xl font-bold">{{ $ticket->title }}</h2>
-                        <p class="text-sm mt-1">Event Ticket</p>
-
-                        <div class="mt-4 space-y-1">
-                            <div class="flex justify-between"><span
-                                    class="font-semibold">Date:</span><span>{{ \Carbon\Carbon::parse($ticket->game_date)->format('M d, Y H:i') }}</span>
-                            </div>
-                            <div class="flex justify-between"><span
-                                    class="font-semibold">Stadium:</span><span>{{ $ticket->stadium }}</span></div>
-                            <div class="flex justify-between"><span
-                                    class="font-semibold">Seat:</span><span>{{ $ticket->seat_info }}</span></div>
-                            <div class="flex justify-between"><span
-                                    class="font-semibold">Price:</span><span>${{ $ticket->price }}</span></div>
-                            <div class="flex justify-between"><span
-                                    class="font-semibold">Status:</span><span>{{ $ticket->is_available ? 'Available' : 'Sold' }}</span>
-                            </div>
+                    <!-- Ticket Body -->
+                    <div class="p-4 text-center">
+                        <div class="mb-3"><strong>Seat:</strong> {{ $ticket->seat_info }}</div>
+                        <div class="mb-3"><strong>Price:</strong> ${{ $ticket->price }}</div>
+                        <div class="mb-3">
+                            <strong>Status:</strong>
+                            <span class="badge {{ $ticket->is_available ? 'bg-success' : 'bg-danger' }}">
+                                {{ $ticket->is_available ? 'Available' : 'Sold' }}
+                            </span>
                         </div>
 
                         <!-- Actions -->
-                        <div class="mt-4 flex space-x-2">
-                            <!-- View button visible to all -->
-                            <a href="{{ route('tickets.show', $ticket->id) }}"
-                                class="px-3 py-1 bg-white text-purple-600 font-semibold rounded hover:bg-gray-100">
-                                View
-                            </a>
+                        <div class="d-flex justify-content-center gap-2 flex-wrap mt-3">
+                            <a href="{{ route('tickets.show', $ticket->id) }}" class="btn btn-outline-primary btn-sm">View</a>
 
-                            <!-- Admin-only: Edit/Delete -->
-                            @if(auth()->check() && auth()->user()->isAdmin())
-                                <a href="{{ route('tickets.edit', $ticket->id) }}"
-                                    class="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500">
-                                    Edit
-                                </a>
-                                <form action="{{ route('tickets.destroy', $ticket->id) }}" method="POST" class="inline">
+                            @if(auth()->check() && auth()->user()->role === 'user' && $ticket->is_available)
+                                <form action="{{ route('cart.add', $ticket->id) }}" method="POST">
                                     @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                                        onclick="return confirm('Delete Ticket?')">
-                                        Delete
-                                    </button>
+                                    <button type="submit" class="btn btn-success btn-sm">Add to Cart</button>
                                 </form>
                             @endif
 
-                            <!-- User-only: Add to Cart -->
-                            @if(auth()->check() && auth()->user()->isUser() && $ticket->is_available)
-                                <form action="{{ route('cart.add', $ticket->id) }}" method="POST" class="inline">
+                            @if(auth()->check() && auth()->user()->role === 'admin')
+                                <a href="{{ route('tickets.edit', $ticket->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                                <form action="{{ route('tickets.destroy', $ticket->id) }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600">
-                                        Add to Cart
-                                    </button>
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this ticket?')">Delete</button>
                                 </form>
                             @endif
                         </div>
                     </div>
 
-                    <!-- Optional Ticket Footer -->
-                    <div class="bg-gray-50 px-6 py-4 text-center text-gray-800 border-t border-gray-200">
-                        <span class="text-sm font-semibold">Ticket ID: {{ $ticket->id }}</span>
+                    <!-- Ticket Footer -->
+                    <div class="bg-light px-4 py-2 text-center text-muted border-top border-dashed" 
+                         style="border-style: dashed !important;">
+                        Ticket ID: {{ $ticket->id }}
                     </div>
                 </div>
-            @endforeach
-        </div>
-
+            </div>
+        @endforeach
     </div>
+
+    @if($tickets->isEmpty())
+        <p class="text-center text-muted mt-5">No tickets available at the moment.</p>
+    @endif
+</div>
 @endsection
