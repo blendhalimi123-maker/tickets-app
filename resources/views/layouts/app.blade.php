@@ -50,7 +50,7 @@
                     </li>
                     @endif
 
-                    <!-- Auth links -->
+                  
                     @guest
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('login') }}">Login</a>
@@ -78,12 +78,12 @@
         </div>
     </main>
 
-    <!-- Footer -->
+    
     <footer class="bg-light text-center text-muted py-4 mt-auto">
         &copy; {{ date('Y') }} Tickets App. All rights reserved.
     </footer>
 
-    <!-- Bootstrap 5 JS Bundle -->
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/app.js') }}"></script>
 </body>

@@ -4,13 +4,13 @@
 <div class="container py-5 d-flex justify-content-center">
     <div class="card shadow-lg rounded-4 w-100" style="max-width: 600px;">
 
-        <!-- Header -->
+        
         <div class="text-center text-white py-4" style="background: linear-gradient(135deg, #0d6efd, #6610f2);">
             <h1 class="fw-bold display-5 mb-2">Create New Ticket</h1>
             <p class="mb-0 fs-6">Fill in the details below to add a new match ticket</p>
         </div>
 
-        <!-- Body -->
+        
         <div class="card-body">
 
             @if($errors->any())

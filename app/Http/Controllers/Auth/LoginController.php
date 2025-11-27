@@ -8,10 +8,10 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    // Show login form
+    // login 
     public function showLoginForm()
     {
-        return view('auth.login'); // create this blade file next
+        return view('auth.login'); 
     }
 
     // Handle login
@@ -22,7 +22,7 @@ class LoginController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            // Redirect based on role
+            
             if (Auth::user()->role === 'admin') {
                 return redirect()->intended('/admin');
             } else {

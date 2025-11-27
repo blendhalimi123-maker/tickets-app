@@ -9,10 +9,10 @@ use Illuminate\Support\Facades\Hash;
 
 class RegisterController extends Controller
  {
-    // Show registration form
+    // Show registration 
     public function showRegistrationForm()
     {
-        return view('auth.register'); // we'll create this view
+        return view('auth.register'); 
     }
 
     // Handle registration
@@ -28,11 +28,11 @@ class RegisterController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'user', // automatically assign 'user' role
+            'role' => 'user', 
         ]);
 
-        auth()->login($user); // log in the user automatically
+        auth()->login($user); 
 
-        return redirect('/dashboard'); // redirect to user dashboard
+        return redirect('/dashboard'); 
     }
 }

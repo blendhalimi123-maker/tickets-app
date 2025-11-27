@@ -22,38 +22,37 @@
                 @csrf
                 @method('PUT')
 
-                <!-- Title -->
                 <div class="mb-3">
                     <label class="form-label fw-bold">Match (Title)</label>
                     <input type="text" name="title" class="form-control" value="{{ $ticket->title }}" required>
                 </div>
 
-                <!-- Game Date -->
+                
                 <div class="mb-3">
                     <label class="form-label fw-bold">Date & Time</label>
                     <input type="datetime-local" name="game_date" class="form-control"
                         value="{{ date('Y-m-d\TH:i', strtotime($ticket->game_date)) }}" required>
                 </div>
 
-                <!-- Stadium -->
+                
                 <div class="mb-3">
                     <label class="form-label fw-bold">Stadium</label>
                     <input type="text" name="stadium" class="form-control" value="{{ $ticket->stadium }}" required>
                 </div>
 
-                <!-- Seat Info -->
+                <
                 <div class="mb-3">
                     <label class="form-label fw-bold">Seat Info</label>
                     <input type="text" name="seat_info" class="form-control" value="{{ $ticket->seat_info }}" required>
                 </div>
 
-                <!-- Price -->
+                
                 <div class="mb-3">
                     <label class="form-label fw-bold">Price ($)</label>
                     <input type="number" step="0.01" name="price" class="form-control" value="{{ $ticket->price }}" required>
                 </div>
 
-                <!-- Availability -->
+              
                 <div class="mb-4">
                     <label class="form-label fw-bold">Available</label>
                     <select name="is_available" class="form-select">
@@ -62,7 +61,7 @@
                     </select>
                 </div>
 
-                <!-- Buttons -->
+                
                 <div class="d-flex justify-content-between">
                     <a href="{{ route('tickets.index') }}" class="btn btn-secondary">Cancel</a>
                     <button type="submit" class="btn btn-primary">Update Ticket</button>

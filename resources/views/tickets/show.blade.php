@@ -4,14 +4,14 @@
 <div class="container py-5 d-flex justify-content-center">
     <div class="card shadow-lg rounded-4 position-relative" style="max-width: 700px; width: 100%; overflow: hidden;">
 
-        <!-- Header -->
+      
         <div class="text-center text-white py-5" style="background: linear-gradient(135deg, #0d6efd, #6610f2);">
             <h1 class="fw-bold display-3 mb-3">{{ $ticket->title }}</h1>
             <p class="mb-2 fs-5">{{ \Carbon\Carbon::parse($ticket->game_date)->format('l, M d, Y H:i') }}</p>
             <p class="mb-0 fs-5">{{ $ticket->stadium }}</p>
         </div>
 
-        <!-- Ticket Body -->
+        
         <div class="p-5 text-center bg-light">
 
             <div class="mb-4">
@@ -32,20 +32,20 @@
             </div>
         </div>
 
-        <!-- QR Code Bottom Right -->
+        
         <div class="position-absolute" style="bottom: 20px; right: 20px;">
             <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data={{ route('tickets.show', $ticket->id) }}" 
                  alt="QR Code" class="img-fluid rounded shadow-sm">
         </div>
 
-        <!-- Perforated footer -->
+        
         <div class="bg-secondary text-white text-center py-2 mt-3" style="border-top: 2px dashed #fff;">
             Ticket ID: {{ $ticket->id }}
         </div>
     </div>
 </div>
 
-<!-- Hover effect -->
+
 <style>
 .card:hover {
     transform: translateY(-8px);

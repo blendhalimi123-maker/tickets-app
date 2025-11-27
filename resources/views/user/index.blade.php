@@ -3,16 +3,15 @@
 @section('content')
 <div class="container py-5">
 
-    <!-- Welcome Message -->
+    
     <div class="text-center mb-5">
         <h1 class="fw-bold">Welcome, {{ auth()->user()->name }}!</h1>
         <p class="text-muted fs-5">View and buy tickets here.</p>
     </div>
 
-    <!-- Dashboard Cards -->
+    
     <div class="row g-4 mb-5 justify-content-center">
 
-        <!-- Tickets Card -->
         <div class="col-md-4">
             <div class="card shadow-sm rounded-4 p-4 text-center h-100">
                 <div class="mb-3">
@@ -24,7 +23,7 @@
             </div>
         </div>
 
-        <!-- Logout Card -->
+        
         <div class="col-md-4">
             <div class="card shadow-sm rounded-4 p-4 text-center h-100">
                 <div class="mb-3">
@@ -41,6 +40,5 @@
 
     </div>
 
-    <!-- Optional: Add more cards for stats, recent tickets, etc. -->
 </div>
 @endsection

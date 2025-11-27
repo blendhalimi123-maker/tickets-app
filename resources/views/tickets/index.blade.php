@@ -9,7 +9,6 @@
             <div class="col-md-6 col-lg-4">
                 <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
 
-                    <!-- Ticket Header -->
                     <div class="p-4 text-center text-dark" 
                          style="background: linear-gradient(135deg, #cfe2ff, #9ec5fe);">
                         <h2 class="fw-bold mb-2" style="font-size: 1.8rem;">
@@ -19,7 +18,7 @@
                         <small class="d-block">{{ $ticket->stadium }}</small>
                     </div>
 
-                    <!-- Ticket Body -->
+                    
                     <div class="p-4 text-center">
                         <div class="mb-3"><strong>Seat:</strong> {{ $ticket->seat_info }}</div>
                         <div class="mb-3"><strong>Price:</strong> ${{ $ticket->price }}</div>
@@ -30,7 +29,6 @@
                             </span>
                         </div>
 
-                        <!-- Actions -->
                         <div class="d-flex justify-content-center gap-2 flex-wrap mt-3">
                             <a href="{{ route('tickets.show', $ticket->id) }}" class="btn btn-outline-primary btn-sm">View</a>
 
@@ -52,7 +50,7 @@
                         </div>
                     </div>
 
-                    <!-- Ticket Footer -->
+                    
                     <div class="bg-light px-4 py-2 text-center text-muted border-top border-dashed" 
                          style="border-style: dashed !important;">
                         Ticket ID: {{ $ticket->id }}

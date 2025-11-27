@@ -35,7 +35,7 @@
                             <p class="fw-semibold mb-0">Price: ${{ $ticket->price }}</p>
                         </div>
 
-                        <!-- Quantity & Actions -->
+                       
                         <div class="d-flex flex-column align-items-center gap-2 mt-3 mt-md-0">
                             <form action="{{ route('cart.update', $cart->id) }}" method="POST" class="d-flex gap-2">
                                 @csrf
@@ -51,7 +51,7 @@
                             </form>
                         </div>
 
-                        <!-- Item Total -->
+                        
                         <div class="ms-md-3 mt-3 mt-md-0 text-end fw-bold fs-5">
                             ${{ $itemTotal }}
                         </div>
@@ -60,7 +60,7 @@
             @endforeach
         </div>
 
-        <!-- Cart Summary -->
+        
         <div class="d-flex justify-content-end mt-4">
             <div class="card shadow-sm p-4 rounded-4" style="max-width: 320px; background: #f8f9fa;">
                 <h5 class="fw-bold mb-3">Cart Summary</h5>
