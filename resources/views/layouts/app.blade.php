@@ -5,15 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tickets App</title>
 
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Optional custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100" style="
+    background:
+        linear-gradient(135deg, rgba(253,251,251,0.7) 0%, rgba(235,237,238,0.7) 100%),
+        url('{{ asset('images/background.jpg') }}');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+">
 
-    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow sticky-top">
         <div class="container">
             <a class="navbar-brand text-primary fw-bold fs-3" href="{{ route('tickets.index') }}">TicketsApp</a>
@@ -26,21 +29,17 @@
                         <a class="nav-link" href="{{ route('tickets.index') }}">Home</a>
                     </li>
 
-                    <!-- Admin-only: Create Ticket -->
                     @if(auth()->check() && auth()->user()->isAdmin())
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('tickets.create') }}">Create Ticket</a>
                     </li>
                     @endif
 
-                    <!-- User-only: Shopping Cart -->
                     @if(auth()->check() && auth()->user()->isUser())
                     <li class="nav-item position-relative">
                         <a class="nav-link" href="{{ route('cart.index') }}">
                             🛒 Cart
-                            @php
-                                $cartCount = auth()->user()->cartCount();
-                            @endphp
+                            @php $cartCount = auth()->user()->cartCount(); @endphp
                             @if($cartCount > 0)
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                                 {{ $cartCount }}
@@ -50,14 +49,9 @@
                     </li>
                     @endif
 
-                  
                     @guest
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('login') }}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('register') }}">Register</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Register</a></li>
                     @else
                     <li class="nav-item">
                         <form method="POST" action="{{ route('logout') }}" class="d-inline">
@@ -71,19 +65,17 @@
         </div>
     </nav>
 
-    <!-- Main content -->
     <main class="flex-grow-1 container my-5">
-        <div class="bg-white shadow rounded-3 p-4 border">
+        <div class="@yield('wrapper-class', 'shadow rounded-3 p-4 border')" 
+             style="@yield('wrapper-style', 'background: rgba(255,255,255,0.85); backdrop-filter: blur(3px);')">
             @yield('content')
         </div>
     </main>
 
-    
     <footer class="bg-light text-center text-muted py-4 mt-auto">
         &copy; {{ date('Y') }} Tickets App. All rights reserved.
     </footer>
 
-    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/app.js') }}"></script>
 </body>

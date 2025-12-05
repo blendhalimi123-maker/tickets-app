@@ -6,22 +6,12 @@ use App\Http\Middleware\RoleMiddleware;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\FootballController;
 
-/*
-
-| Web Routes
-
-*/
-
-
-// Home page redirects to tickets index
 Route::get('/', function () {
     return redirect()->route('tickets.index');
 });
 
-// -------------------------
-// Authentication routes
-// -------------------------
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
@@ -29,34 +19,29 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
 
-
-
-
-Route::middleware([RoleMiddleware::class.':admin'])->group(function () {
+Route::middleware([RoleMiddleware::class . ':admin'])->group(function () {
     Route::resource('tickets', TicketController::class)->except(['index', 'show']);
+    Route::get('/admin', function () {
+        return view('admin.index');
+    })->name('admin.index');
 });
 
-
-Route::middleware([RoleMiddleware::class.':user,admin'])->group(function () {
+Route::middleware([RoleMiddleware::class . ':user,admin'])->group(function () {
     Route::get('tickets', [TicketController::class, 'index'])->name('tickets.index');
     Route::get('tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
 });
 
-
-
-Route::get('/admin', function () {
-    return view('admin.index'); // admin dashboard blade
-})->middleware([RoleMiddleware::class.':admin'])->name('admin.index');
-
 Route::get('/dashboard', function () {
-    return view('user.index'); // user dashboard blade
-})->middleware([RoleMiddleware::class.':user'])->name('user.dashboard');
+    return view('user.index');
+})->middleware([RoleMiddleware::class . ':user'])->name('user.dashboard');
 
+Route::middleware([RoleMiddleware::class . ':user'])->group(function () {
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/add/{ticket}', [CartController::class, 'add'])->name('cart.add');
+    Route::post('/cart/remove/{cart}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::post('/cart/update/{cart}', [CartController::class, 'update'])->name('cart.update');
+});
 
-
-Route::middleware([RoleMiddleware::class.':user'])->group(function () {
-    Route::get('/cart', [CartController::class, 'index'])->name('cart.index'); // View cart
-    Route::post('/cart/add/{ticket}', [CartController::class, 'add'])->name('cart.add'); // Add to cart
-    Route::post('/cart/remove/{cart}', [CartController::class, 'remove'])->name('cart.remove'); // Remove from cart
-    Route::post('/cart/update/{cart}', [CartController::class, 'update'])->name('cart.update'); // Update quantity
+Route::middleware([RoleMiddleware::class . ':user,admin'])->group(function () {
+    Route::get('/team-schedule', [FootballController::class, 'schedule'])->name('football.schedule');
 });

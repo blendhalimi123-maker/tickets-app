@@ -8,16 +8,12 @@ use App\Models\Ticket;
 
 class CartController extends Controller
 {
-    // -------------------------
-    // Display the user's cart
-    // -------------------------
     public function index()
     {
         $cartItems = Cart::with('ticket')
             ->where('user_id', auth()->id())
             ->get();
 
-        // Calculate total price
         $total = $cartItems->sum(function($item) {
             return $item->ticket->price * $item->quantity;
         });
@@ -25,9 +21,7 @@ class CartController extends Controller
         return view('cart.index', compact('cartItems', 'total'));
     }
 
-    // -------------------------
-    // Add ticket to cart
-    // -------------------------
+ 
     public function add(Ticket $ticket)
     {
         $cartItem = Cart::firstOrCreate(
@@ -38,9 +32,7 @@ class CartController extends Controller
         return redirect()->back()->with('success', 'Ticket added to cart!');
     }
 
-    // -------------------------
-    // Remove item from cart
-    // -------------------------
+ 
     public function remove(Cart $cart)
     {
         if ($cart->user_id !== auth()->id()) {
@@ -52,9 +44,9 @@ class CartController extends Controller
         return redirect()->back()->with('success', 'Ticket removed from cart.');
     }
 
-    // -------------------------
-    // Update quantity
-    // -------------------------
+    
+    
+    
     public function update(Request $request, Cart $cart)
     {
         if ($cart->user_id !== auth()->id()) {
