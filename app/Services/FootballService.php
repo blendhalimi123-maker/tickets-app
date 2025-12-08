@@ -15,11 +15,11 @@ class FootballService
         $this->token = env('SPORTMONKS_API_TOKEN');
     }
 
-    public function getTeamSchedule($teamId)
+    public function getTeamScheduleBetween($teamId, $from, $to)
     {
         $response = Http::withToken($this->token)
             ->withOptions(['verify' => false])
-            ->get("{$this->baseUrl}/schedules/teams/{$teamId}?include=league,season,round,participants,venue")
+            ->get("{$this->baseUrl}/fixtures/between/{$from}/{$to}/{$teamId}?include=participants;league;venue;scores")
             ->json();
 
         return $response['data'] ?? [];

@@ -14,7 +14,7 @@ class Ticket extends Model
      'seat_info',
      'price',
      'is_available',
-     'user_id', // ID of the user selling the ticket
+     'user_id', 
     ] ;
     
      

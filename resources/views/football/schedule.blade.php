@@ -14,17 +14,14 @@
                                 <img src="{{ $match['participants'][0]['image_path'] ?? '' }}" class="me-2" width="40" height="40">
                                 <span>{{ $match['participants'][0]['name'] ?? 'Home' }}</span>
                             </div>
-
                             <strong>vs</strong>
-
                             <div class="d-flex align-items-center">
                                 <span>{{ $match['participants'][1]['name'] ?? 'Away' }}</span>
                                 <img src="{{ $match['participants'][1]['image_path'] ?? '' }}" class="ms-2" width="40" height="40">
                             </div>
                         </div>
-
                         <div class="mt-2 text-muted small">
-                            {{ $match['starting_at'] ?? 'TBD' }} • 
+                            {{ \Carbon\Carbon::parse($match['starting_at'])->format('d M Y H:i') ?? 'TBD' }} • 
                             {{ $match['venue']['name'] ?? 'Unknown Venue' }} • 
                             {{ $match['league']['name'] ?? '' }}
                         </div>
