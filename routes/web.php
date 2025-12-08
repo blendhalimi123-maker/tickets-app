@@ -45,3 +45,14 @@ Route::middleware([RoleMiddleware::class . ':user'])->group(function () {
 Route::middleware([RoleMiddleware::class . ':user,admin'])->group(function () {
     Route::get('/team-schedule', [FootballController::class, 'schedule'])->name('football.schedule');
 });
+
+//paswword change
+
+Route::get('/password/change', [App\Http\Controllers\ProfileController::class, 'editPassword'])
+    ->name('password.change')
+    ->middleware('auth');
+
+Route::post('/password/change', [App\Http\Controllers\ProfileController::class, 'updatePassword'])
+    ->name('password.update')
+    ->middleware('auth');
+

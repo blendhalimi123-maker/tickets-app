@@ -23,8 +23,10 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
+
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('tickets.index') }}">Home</a>
                     </li>
@@ -53,13 +55,38 @@
                     <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Login</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Register</a></li>
                     @else
-                    <li class="nav-item">
-                        <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                            @csrf
-                            <button type="submit" class="btn btn-link nav-link p-0">Logout</button>
-                        </form>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="settingsDropdown"
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="me-1">⚙️</span> Settings
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="settingsDropdown" style="min-width: 250px;">
+                            <li class="dropdown-header text-center">
+                                <strong>{{ Auth::user()->name }}</strong><br>
+                                <small class="text-muted">{{ Auth::user()->email }}</small>
+                            </li>
+
+                            <li><hr class="dropdown-divider"></li>
+
+                            <li>
+                                <a class="dropdown-item" href="{{ route('password.change') }}">
+                                    🔐 Change Password
+                                </a>
+                            </li>
+
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button class="dropdown-item text-danger">🚪 Logout</button>
+                                </form>
+                            </li>
+                        </ul>
                     </li>
+
                     @endguest
+
                 </ul>
             </div>
         </div>
