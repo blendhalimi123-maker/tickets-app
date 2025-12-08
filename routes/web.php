@@ -6,7 +6,7 @@ use App\Http\Middleware\RoleMiddleware;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CartController;
-use App\Http\Controllers\FootballController;
+use App\Http\Controllers\Api\FootballController as ApiFootballController;
 
 Route::get('/', function () {
     return redirect()->route('tickets.index');
@@ -42,12 +42,22 @@ Route::middleware([RoleMiddleware::class . ':user'])->group(function () {
     Route::post('/cart/update/{cart}', [CartController::class, 'update'])->name('cart.update');
 });
 
+
 Route::middleware([RoleMiddleware::class . ':user,admin'])->group(function () {
-    Route::get('/team-schedule', [FootballController::class, 'schedule'])->name('football.schedule');
+    Route::get('/team-schedule', function () {
+        return view('football.schedule');
+    })->name('football.schedule');
 });
 
-//paswword change
 
+Route::prefix('api/football')->group(function () {
+    Route::get('/all', [ApiFootballController::class, 'allCompetitions']);
+    Route::get('/champions-league', [ApiFootballController::class, 'championsLeague']);
+    Route::get('/premier-league', [ApiFootballController::class, 'premierLeague']);
+    Route::get('/world-cup', [ApiFootballController::class, 'worldCup']);
+});
+
+//password change
 Route::get('/password/change', [App\Http\Controllers\ProfileController::class, 'editPassword'])
     ->name('password.change')
     ->middleware('auth');
@@ -55,4 +65,3 @@ Route::get('/password/change', [App\Http\Controllers\ProfileController::class, '
 Route::post('/password/change', [App\Http\Controllers\ProfileController::class, 'updatePassword'])
     ->name('password.update')
     ->middleware('auth');
-

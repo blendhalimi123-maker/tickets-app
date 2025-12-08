@@ -1,34 +1,38 @@
-@extends('layouts.app')
+<?php
 
-@section('content')
-<div class="container">
-    <h2 class="mb-4">Change Password</h2>
+namespace App\Http\Controllers;
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
-    <form method="POST" action="{{ route('password.update') }}">
-        @csrf
+class ProfileController extends Controller
+{
+    // Show the change password form
+    public function editPassword()
+    {
+        return view('profile.change-password'); // make sure this matches your Blade view path
+    }
 
-        <div class="mb-3">
-            <label class="form-label">Current Password</label>
-            <input type="password" name="current_password" class="form-control">
-            @error('current_password') <small class="text-danger">{{ $message }}</small> @enderror
-        </div>
+    // Handle the password update
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|confirmed|min:8',
+        ]);
 
-        <div class="mb-3">
-            <label class="form-label">New Password</label>
-            <input type="password" name="password" class="form-control">
-            @error('password') <small class="text-danger">{{ $message }}</small> @enderror
-        </div>
+        $user = Auth::user();
 
-        <div class="mb-3">
-            <label class="form-label">Confirm New Password</label>
-            <input type="password" name="password_confirmation" class="form-control">
-        </div>
+        // Check current password
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Current password is incorrect']);
+        }
 
-        <button class="btn btn-primary">Update Password</button>
-    </form>
-</div>
-@endsection
+        // Update password
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return back()->with('success', 'Password updated successfully');
+    }
+}
