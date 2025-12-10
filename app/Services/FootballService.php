@@ -13,25 +13,37 @@ class FootballService
     public function getCompetitionMatches($competitionCode, $cacheMinutes = 10)
     {
         return Cache::remember("football_matches_{$competitionCode}", $cacheMinutes * 60, function () use ($competitionCode) {
-            // ADD THIS LINE TO DISABLE SSL VERIFICATION
-            $response = Http::withOptions([
-                'verify' => false,
-            ])->withHeaders([
-                'X-Auth-Token' => $this->apiKey
-            ])->get("{$this->baseUrl}/competitions/{$competitionCode}/matches", [
-                'status' => 'SCHEDULED',
-                'limit' => 50
-            ]);
-            
+            $response = Http::withOptions(['verify' => false])
+                ->withHeaders(['X-Auth-Token' => $this->apiKey])
+                ->get("{$this->baseUrl}/competitions/{$competitionCode}/matches", [
+                    'status' => 'SCHEDULED'
+                ]);
+
             if ($response->successful()) {
-                return $response->json();
+                $json = $response->json();
+                return ['matches' => $json['matches'] ?? []];
             }
-            
-            \Log::error('Football API Error: ' . $response->status());
+
+            \Log::error("Football API Error ({$competitionCode}): " . $response->status());
             return ['matches' => []];
         });
     }
-    
+
+    public function getChampionsLeagueMatches($cacheMinutes = 10)
+    {
+        return $this->getCompetitionMatches('CL', $cacheMinutes);
+    }
+
+    public function getPremierLeagueMatches($cacheMinutes = 10)
+    {
+        return $this->getCompetitionMatches('PL', $cacheMinutes);
+    }
+
+    public function getWorldCupMatches($cacheMinutes = 10)
+    {
+        return $this->getCompetitionMatches('WC', $cacheMinutes);
+    }
+
     public function getAllCompetitions()
     {
         $competitions = [
@@ -39,9 +51,9 @@ class FootballService
             'PL' => 'Premier League',
             'WC' => 'FIFA World Cup'
         ];
-        
+
         $data = [];
-        
+
         foreach ($competitions as $code => $name) {
             $matches = $this->getCompetitionMatches($code);
             $data[strtolower(str_replace(' ', '_', $name))] = [
@@ -51,21 +63,18 @@ class FootballService
                 'count' => count($matches['matches'] ?? [])
             ];
         }
-        
+
         return $data;
     }
-    
+
     public function getTeamMatches($teamId)
     {
-        $response = Http::withOptions([
-            'verify' => false,
-        ])->withHeaders([
-            'X-Auth-Token' => $this->apiKey
-        ])->get("{$this->baseUrl}/teams/{$teamId}/matches", [
-            'status' => 'SCHEDULED',
-            'limit' => 20
-        ]);
-        
-        return $response->successful() ? $response->json() : ['matches' => []];
+        $response = Http::withOptions(['verify' => false])
+            ->withHeaders(['X-Auth-Token' => $this->apiKey])
+            ->get("{$this->baseUrl}/teams/{$teamId}/matches", [
+                'status' => 'SCHEDULED'
+            ]);
+
+        return $response->successful() ? ['matches' => $response->json()['matches'] ?? []] : ['matches' => []];
     }
 }

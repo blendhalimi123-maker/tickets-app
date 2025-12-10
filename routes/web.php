@@ -10,8 +10,9 @@ use App\Http\Controllers\Api\FootballController as ApiFootballController;
 use App\Http\Controllers\StadiumController;
 
 Route::get('/', function () {
-    return redirect()->route('tickets.index');
+    return redirect()->route('user.dashboard');
 });
+
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.submit');

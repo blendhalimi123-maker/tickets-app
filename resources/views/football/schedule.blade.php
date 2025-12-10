@@ -2,328 +2,509 @@
 
 @section('content')
 
-<div class="container-fluid px-0"> <div class="premier-league-hero py-5"> <div class="container"> <div class="row align-items-center"> <div class="col-md-8"> <h1 class="display-4 fw-bold text-white mb-3"> <i class="fas fa-futbol me-3"></i>Match Schedules </h1> <p class="lead text-white mb-0"> Real-time fixtures, scores, and ticket information </p> </div> <div class="col-md-4 text-end"> <button onclick="refreshData()" class="btn btn-light btn-lg shadow-sm"> <i class="fas fa-sync-alt me-2"></i>Refresh Live </button> </div> </div> </div> </div>
-
-<div class="container py-4">
-    <div class="row g-4">
-        <div class="col-lg-4">
-            <div class="card competition-card champions-league h-100 border-0 shadow-sm" onclick="switchTab('champions_league')">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="competition-icon bg-purple">
-                            <i class="fas fa-trophy"></i>
-                        </div>
-                        <div class="ms-3">
-                            <h5 class="card-title fw-bold mb-0">Champions League</h5>
-                            <small class="text-muted">UEFA</small>
-                        </div>
-                    </div>
-                    <p class="card-text text-muted mb-4">Europe's premier club competition featuring top teams.</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-purple-light text-purple" id="champions-count">0 matches</span>
-                        <button class="btn btn-sm btn-purple">View <i class="fas fa-arrow-right ms-1"></i></button>
-                    </div>
+<div class="container-fluid px-0">
+    <div class="premier-league-hero py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-12">
+                    <h1 class="display-6 fw-bold text-white mb-2">
+                        <i class="fas fa-futbol me-2"></i>Premier League Schedule
+                    </h1>
+                    <p class="text-white mb-0">
+                         Fixtures, and match information
+                    </p>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="col-lg-4">
-            <div class="card competition-card premier-league h-100 border-0 shadow-sm" onclick="switchTab('premier_league')">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="competition-icon bg-primary">
-                            <i class="fas fa-crown"></i>
+    <div class="container py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card competition-card premier-league h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="competition-icon bg-primary">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                            <div class="ms-3">
+                                <h5 class="card-title fw-bold mb-0">Premier League</h5>
+                                <small class="text-muted">England</small>
+                            </div>
                         </div>
-                        <div class="ms-3">
-                            <h5 class="card-title fw-bold mb-0">Premier League</h5>
-                            <small class="text-muted">England</small>
+                        <p class="card-text text-muted mb-3">Top English football league</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-primary-light text-primary" id="premier-count">230 matches</span>
                         </div>
-                    </div>
-                    <p class="card-text text-muted mb-4">The most watched football league in the world.</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-primary-light text-primary" id="premier-count">0 matches</span>
-                        <button class="btn btn-sm btn-primary">View <i class="fas fa-arrow-right ms-1"></i></button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card competition-card world-cup h-100 border-0 shadow-sm" onclick="switchTab('world_cup')">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="competition-icon bg-success">
-                            <i class="fas fa-globe-americas"></i>
-                        </div>
-                        <div class="ms-3">
-                            <h5 class="card-title fw-bold mb-0">World Cup</h5>
-                            <small class="text-muted">FIFA</small>
-                        </div>
-                    </div>
-                    <p class="card-text text-muted mb-4">The greatest sporting event on earth.</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-success-light text-success" id="worldcup-count">0 matches</span>
-                        <button class="btn btn-sm btn-success">View <i class="fas fa-arrow-right ms-1"></i></button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="container py-4">
-    <div class="card border-0 shadow-lg">
-        <div class="card-header bg-white border-0 py-4">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h3 class="fw-bold mb-0" id="active-competition-title">Select a Competition</h3>
-                    <p class="text-muted mb-0" id="active-competition-subtitle">Click on a competition card above to view matches</p>
-                </div>
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown">
-                        <i class="fas fa-sort me-2"></i>Sort by
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#" onclick="sortMatches('date')">Date (Soonest)</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="sortMatches('league')">League</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="sortMatches('status')">Match Status</a></li>
-                    </ul>
+    <div class="container py-4">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-white border-0 py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="fw-bold mb-0">Premier League Matches</h4>
+                        <p class="text-muted mb-0 small" id="active-competition-subtitle">230 matches total</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary btn-sm" id="calendar-toggle-btn" onclick="toggleCalendar()">
+                            <i class="fas fa-calendar me-1"></i>Sort by Date
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="clearFilters()">
+                            <i class="fas fa-times me-1"></i>Clear Filter
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="card-body p-0">
             
-            <div id="loading-state" class="text-center py-5">
-                <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-3 text-muted">Loading football data...</p>
-            </div>
-
-            <div id="error-state" class="text-center py-5 d-none">
-                <div class="py-5">
-                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-4"></i>
-                    <h4 class="mb-3">Unable to Load Data</h4>
-                    <p class="text-muted mb-4">There was an issue fetching the latest match information.</p>
-                    <button onclick="refreshData()" class="btn btn-primary">
-                        <i class="fas fa-redo me-2"></i>Try Again
-                    </button>
+            <div class="card-body border-bottom p-3 bg-light">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Filter by Team Name</label>
+                        <input type="text" class="form-control" id="team-filter" 
+                               placeholder="Search team name..." onkeyup="applyFilters()">
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <div class="w-100">
+                            <div class="small text-muted" id="filter-results-count">Showing all 230 matches</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div id="empty-state" class="text-center py-5 d-none">
-                <div class="py-5">
-                    <i class="fas fa-calendar-times fa-3x text-muted mb-4"></i>
-                    <h4 class="mb-3">No Matches Found</h4>
-                    <p class="text-muted">There are no upcoming matches for this competition.</p>
+            
+            <div class="calendar-container p-2 border-bottom bg-white d-none" id="calendar-container">
+                <div class="calendar-wrapper">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <button class="btn btn-sm btn-outline-secondary p-1" onclick="prevMonth()">
+                            <i class="fas fa-chevron-left fa-xs"></i>
+                        </button>
+                        <h6 class="fw-bold mb-0 fs-6" id="calendar-month">April 2024</h6>
+                        <button class="btn btn-sm btn-outline-secondary p-1" onclick="nextMonth()">
+                            <i class="fas fa-chevron-right fa-xs"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="calendar-grid mb-2">
+                        <div class="calendar-header">
+                            <div class="calendar-day-header">S</div>
+                            <div class="calendar-day-header">M</div>
+                            <div class="calendar-day-header">T</div>
+                            <div class="calendar-day-header">W</div>
+                            <div class="calendar-day-header">T</div>
+                            <div class="calendar-day-header">F</div>
+                            <div class="calendar-day-header">S</div>
+                        </div>
+                        <div class="calendar-days" id="calendar-days"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-sm btn-outline-primary p-1" onclick="selectToday()">
+                            <i class="fas fa-calendar-day me-1 fa-xs"></i>Today
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger p-1" onclick="clearDateFilter()">
+                            <i class="fas fa-times me-1 fa-xs"></i>Clear Date
+                        </button>
+                    </div>
                 </div>
             </div>
+            
+            <div class="card-body p-0">
+                <div id="loading-state" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Loading data...</p>
+                </div>
 
-            <div id="matches-container" class="d-none">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="py-3 ps-4" style="width: 15%">Date & Time</th>
-                                <th class="py-3" style="width: 25%">Home Team</th>
-                                <th class="py-3" style="width: 10%"></th>
-                                <th class="py-3" style="width: 25%">Away Team</th>
-                                <th class="py-3" style="width: 10%">Status</th>
-                                <th class="py-3 pe-4 text-end" style="width: 15%">Tickets</th>
-                            </tr>
-                        </thead>
-                        <tbody id="matches-table-body">
-                        </tbody>
-                    </table>
+                <div id="error-state" class="text-center py-5 d-none">
+                    <div class="py-5">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                        <h5 class="mb-2">Unable to Load</h5>
+                        <p class="text-muted mb-3 small">Error loading match data</p>
+                        <button onclick="refreshData()" class="btn btn-primary btn-sm">
+                            <i class="fas fa-redo me-1"></i>Try Again
+                        </button>
+                    </div>
+                </div>
+
+                <div id="empty-state" class="text-center py-5 d-none">
+                    <div class="py-5">
+                        <i class="fas fa-calendar-times fa-2x text-muted mb-3"></i>
+                        <h5 class="mb-2">No Matches</h5>
+                        <p class="text-muted small">No matches available</p>
+                    </div>
+                </div>
+
+                <div id="no-filter-results" class="text-center py-5 d-none">
+                    <div class="py-5">
+                        <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                        <h5 class="mb-2">No Matches Found</h5>
+                        <p class="text-muted small">No matches match your filter criteria</p>
+                    </div>
+                </div>
+
+                <div id="matches-container" class="d-none p-3">
+                    <div id="matches-list">
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="container py-4">
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-calendar-alt fa-2x text-primary mb-3"></i>
-                    <h3 class="fw-bold" id="total-matches">0</h3>
-                    <p class="text-muted mb-0">Total Matches</p>
+    <div class="container py-4">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center p-3">
+                        <i class="fas fa-calendar-alt fa-lg text-primary mb-2"></i>
+                        <h4 class="fw-bold" id="total-matches">230</h4>
+                        <p class="text-muted mb-0 small">Total Matches</p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-play-circle fa-2x text-success mb-3"></i>
-                    <h3 class="fw-bold" id="live-matches">0</h3>
-                    <p class="text-muted mb-0">Live Now</p>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center p-3">
+                        <i class="fas fa-play-circle fa-lg text-success mb-2"></i>
+                        <h4 class="fw-bold" id="live-matches">0</h4>
+                        <p class="text-muted mb-0 small">Live Now</p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-clock fa-2x text-warning mb-3"></i>
-                    <h3 class="fw-bold" id="upcoming-matches">0</h3>
-                    <p class="text-muted mb-0">Upcoming</p>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center p-3">
+                        <i class="fas fa-clock fa-lg text-warning mb-2"></i>
+                        <h4 class="fw-bold" id="upcoming-matches">0</h4>
+                        <p class="text-muted mb-0 small">Upcoming</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="container py-5">
-    <div class="text-center">
-        <a href="{{ url('/') }}" class="btn btn-lg btn-outline-primary px-5">
-            <i class="fas fa-arrow-left me-2"></i>Back to Home
-        </a>
+    <div class="container py-4">
+        <div class="text-center">
+            <a href="{{ url('/') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Home
+            </a>
+        </div>
     </div>
-</div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    fetchAllCompetitions();
+    fetchPremierLeagueData();
+    setInterval(refreshData, 30000);
+    initializeCalendar();
 });
 
-let allMatches = {};
-let currentCompetition = null;
+let allMatches = [];
+let currentFilteredMatches = [];
+let isCalendarVisible = false;
+let selectedDate = null;
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
 
-async function fetchAllCompetitions() {
+async function fetchPremierLeagueData() {
     try {
         showLoading();
-        const response = await fetch('/api/football/all');
+        const response = await fetch('/api/football/premier-league');
         const data = await response.json();
         if (data.success) {
-            allMatches = data.competitions;
-            updateCompetitionCards();
-            showInitialView();
-            hideError();
+            allMatches = data.matches || [];
+            currentFilteredMatches = [...allMatches];
+            updateStats(currentFilteredMatches);
+            updateFilterResultsCount();
+            sortByDate();
+            hideLoading();
         } else {
             showError();
         }
     } catch (error) {
-        console.error('Error:', error);
         showError();
     }
 }
 
-function updateCompetitionCards() {
-    if (allMatches.champions_league) {
-        document.getElementById('champions-count').textContent = `${allMatches.champions_league.count} matches`;
-    }
-    if (allMatches.premier_league) {
-        document.getElementById('premier-count').textContent = `${allMatches.premier_league.count} matches`;
-    }
-    if (allMatches.world_cup) {
-        document.getElementById('worldcup-count').textContent = `${allMatches.world_cup.count} matches`;
+function toggleCalendar() {
+    const calendarContainer = document.getElementById('calendar-container');
+    const calendarBtn = document.getElementById('calendar-toggle-btn');
+    
+    isCalendarVisible = !isCalendarVisible;
+    
+    if (isCalendarVisible) {
+        calendarContainer.classList.remove('d-none');
+        calendarBtn.innerHTML = '<i class="fas fa-calendar-times me-1"></i>Hide Calendar';
+        calendarBtn.classList.remove('btn-primary');
+        calendarBtn.classList.add('btn-secondary');
+        renderCalendar();
+    } else {
+        calendarContainer.classList.add('d-none');
+        calendarBtn.innerHTML = '<i class="fas fa-calendar me-1"></i>Sort by Date';
+        calendarBtn.classList.remove('btn-secondary');
+        calendarBtn.classList.add('btn-primary');
     }
 }
 
-function switchTab(compType) {
-    currentCompetition = compType;
-    const competition = allMatches[compType];
-    if (!competition || !competition.matches || competition.matches.length === 0) {
-        showEmptyState();
-        return;
+function initializeCalendar() {
+    const today = new Date();
+    currentMonth = today.getMonth();
+    currentYear = today.getFullYear();
+}
+
+function renderCalendar() {
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    document.getElementById('calendar-month').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+    
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDay = firstDay.getDay();
+    
+    const calendarDays = document.getElementById('calendar-days');
+    calendarDays.innerHTML = '';
+    
+    const today = new Date();
+    const todayDate = today.getDate();
+    const todayMonth = today.getMonth();
+    const todayYear = today.getFullYear();
+    
+    for (let i = 0; i < startingDay; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'calendar-day empty';
+        calendarDays.appendChild(emptyDay);
     }
-    document.getElementById('active-competition-title').textContent = competition.name;
-    document.getElementById('active-competition-subtitle').textContent = `${competition.count} matches found`;
-    renderMatches(competition.matches);
-    updateStats(competition.matches);
-    document.getElementById('loading-state').classList.add('d-none');
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day';
+        dayElement.textContent = day;
+        
+        const date = new Date(currentYear, currentMonth, day);
+        
+        if (day === todayDate && currentMonth === todayMonth && currentYear === todayYear) {
+            dayElement.classList.add('today');
+        }
+        
+        if (selectedDate && date.toDateString() === selectedDate.toDateString()) {
+            dayElement.classList.add('selected');
+        }
+        
+        const hasMatches = allMatches.some(match => {
+            const matchDate = new Date(match.utcDate);
+            return matchDate.getDate() === day && 
+                   matchDate.getMonth() === currentMonth && 
+                   matchDate.getFullYear() === currentYear;
+        });
+        
+        if (hasMatches) {
+            dayElement.classList.add('has-matches');
+        }
+        
+        dayElement.onclick = function() {
+            selectCalendarDay(day);
+        };
+        
+        calendarDays.appendChild(dayElement);
+    }
+}
+
+function selectCalendarDay(day) {
+    selectedDate = new Date(currentYear, currentMonth, day);
+    applyFilters();
+    toggleCalendar();
+}
+
+function prevMonth() {
+    currentMonth--;
+    if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+    }
+    renderCalendar();
+}
+
+function nextMonth() {
+    currentMonth++;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    }
+    renderCalendar();
+}
+
+function selectToday() {
+    const today = new Date();
+    selectedDate = today;
+    currentMonth = today.getMonth();
+    currentYear = today.getFullYear();
+    applyFilters();
+    toggleCalendar();
+}
+
+function applyFilters() {
+    const teamFilter = document.getElementById('team-filter').value.toLowerCase();
+    
+    let filtered = [...allMatches];
+    
+    if (teamFilter) {
+        filtered = filtered.filter(match => {
+            const homeTeam = match.homeTeam.name.toLowerCase();
+            const awayTeam = match.awayTeam.name.toLowerCase();
+            const homeShort = match.homeTeam.shortName ? match.homeTeam.shortName.toLowerCase() : '';
+            const awayShort = match.awayTeam.shortName ? match.awayTeam.shortName.toLowerCase() : '';
+            
+            return homeTeam.includes(teamFilter) || 
+                   awayTeam.includes(teamFilter) ||
+                   homeShort.includes(teamFilter) ||
+                   awayShort.includes(teamFilter);
+        });
+    }
+    
+    if (selectedDate) {
+        filtered = filtered.filter(match => {
+            const matchDate = new Date(match.utcDate);
+            return matchDate.toDateString() === selectedDate.toDateString();
+        });
+    }
+    
+    currentFilteredMatches = filtered;
+    
+    if (filtered.length === 0) {
+        document.getElementById('matches-container').classList.add('d-none');
+        document.getElementById('no-filter-results').classList.remove('d-none');
+        document.getElementById('empty-state').classList.add('d-none');
+    } else {
+        document.getElementById('no-filter-results').classList.add('d-none');
+        document.getElementById('matches-container').classList.remove('d-none');
+        document.getElementById('empty-state').classList.add('d-none');
+        sortByDate();
+        updateStats(filtered);
+    }
+    
+    updateFilterResultsCount();
+}
+
+function clearFilters() {
+    document.getElementById('team-filter').value = '';
+    selectedDate = null;
+    currentFilteredMatches = [...allMatches];
+    sortByDate();
+    updateStats(currentFilteredMatches);
+    updateFilterResultsCount();
+    document.getElementById('no-filter-results').classList.add('d-none');
     document.getElementById('empty-state').classList.add('d-none');
-    document.getElementById('error-state').classList.add('d-none');
     document.getElementById('matches-container').classList.remove('d-none');
 }
 
-function renderMatches(matches) {
-    const tbody = document.getElementById('matches-table-body');
-    tbody.innerHTML = '';
+function clearDateFilter() {
+    selectedDate = null;
+    applyFilters();
+    toggleCalendar();
+}
+
+function updateFilterResultsCount() {
+    const total = allMatches.length;
+    const filtered = currentFilteredMatches.length;
+    const resultsCount = document.getElementById('filter-results-count');
+    
+    if (filtered === total) {
+        resultsCount.textContent = `Showing all ${total} matches`;
+        resultsCount.className = 'small text-muted';
+    } else {
+        resultsCount.textContent = `Showing ${filtered} of ${total} matches`;
+        resultsCount.className = 'small text-primary fw-bold';
+    }
+}
+
+function sortByDate() {
+    if (currentFilteredMatches.length === 0) return;
+    const matches = [...currentFilteredMatches];
     matches.sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
+    renderMatches(matches);
+}
+
+function renderMatches(matches) {
+    const container = document.getElementById('matches-list');
+    container.innerHTML = '';
     
     matches.forEach(match => {
         const matchDate = new Date(match.utcDate);
-        const formattedDate = matchDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        const formattedDate = matchDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         const formattedTime = matchDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         const statusClass = getStatusClass(match.status);
         const statusText = getStatusText(match.status);
         const homeTeamCrest = match.homeTeam.crest || getTeamIcon(match.homeTeam.name);
         const awayTeamCrest = match.awayTeam.crest || getTeamIcon(match.awayTeam.name);
-        const hasScore = match.score && match.score.fullTime && (match.score.fullTime.home !== null || match.score.fullTime.away !== null);
         
-        const row = document.createElement('tr');
-        row.className = 'match-row';
-        row.innerHTML = `
-        <td class="ps-4 align-middle">
-            <div class="fw-bold">${formattedDate}</div>
-            <small class="text-muted">${formattedTime}</small>
-        </td>
-        <td class="align-middle">
-            <div class="d-flex align-items-center">
-                <img src="${homeTeamCrest}" alt="${match.homeTeam.name}" class="team-crest me-3" onerror="this.src='${getTeamIcon(match.homeTeam.name)}'">
-                <span class="fw-medium">${match.homeTeam.shortName || match.homeTeam.name}</span>
+        const matchCard = document.createElement('div');
+        matchCard.className = 'card mb-3 border-0 shadow-sm';
+        matchCard.innerHTML = `
+        <div class="card-body p-3">
+            <div class="row align-items-center">
+                <div class="col-md-2">
+                    <div class="text-center">
+                        <div class="fw-bold text-primary small">${formattedDate}</div>
+                        <div class="text-muted smaller">${formattedTime}</div>
+                        <span class="badge ${statusClass} mt-1">${statusText}</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center">
+                        <img src="${homeTeamCrest}" alt="${match.homeTeam.name}" class="team-crest me-3" onerror="this.src='${getTeamIcon(match.homeTeam.name)}'">
+                        <div>
+                            <div class="fw-bold">${match.homeTeam.shortName || match.homeTeam.name}</div>
+                            <div class="text-muted small">Home</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 text-center">
+                    <div class="vs-text">
+                        <span class="badge bg-light text-dark px-3 py-2 fs-6">VS</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center justify-content-end">
+                        <div class="text-end me-3">
+                            <div class="fw-bold">${match.awayTeam.shortName || match.awayTeam.name}</div>
+                            <div class="text-muted small">Away</div>
+                        </div>
+                        <img src="${awayTeamCrest}" alt="${match.awayTeam.name}" class="team-crest" onerror="this.src='${getTeamIcon(match.awayTeam.name)}'">
+                    </div>
+                </div>
             </div>
-        </td>
-        <td class="align-middle text-center">
-            ${hasScore ? `
-            <div class="score-display">
-                <span class="badge bg-dark text-white fs-6 px-3 py-2">
-                    ${match.score.fullTime.home} - ${match.score.fullTime.away}
-                </span>
+            <div class="row mt-3">
+                <div class="col-12 text-end">
+                    <button class="btn btn-primary btn-sm" onclick="viewTickets(${match.id})">
+                        <i class="fas fa-ticket-alt me-1"></i>Get Tickets
+                    </button>
+                </div>
             </div>
-            ` : `
-            <div class="vs-text text-muted" style="font-size: 1.2rem;">vs</div>
-            `}
-        </td>
-        <td class="align-middle">
-            <div class="d-flex align-items-center justify-content-end">
-                <span class="fw-medium me-3">${match.awayTeam.shortName || match.awayTeam.name}</span>
-                <img src="${awayTeamCrest}" alt="${match.awayTeam.name}" class="team-crest" onerror="this.src='${getTeamIcon(match.awayTeam.name)}'">
-            </div>
-        </td>
-        <td class="align-middle">
-            <span class="badge ${statusClass}">${statusText}</span>
-        </td>
-        <td class="pe-4 align-middle text-end">
-            <button class="btn btn-sm btn-primary px-3" onclick="viewTickets(${match.id})">
-                <i class="fas fa-ticket-alt me-1"></i>Tickets
-            </button>
-        </td>
+        </div>
         `;
-        tbody.appendChild(row);
+        container.appendChild(matchCard);
     });
 }
 
 function getStatusClass(status) {
-    switch(status) {
-        case 'SCHEDULED': return 'bg-info';
-        case 'LIVE': return 'bg-success';
-        case 'IN_PLAY': return 'bg-success';
-        case 'FINISHED': return 'bg-secondary';
-        case 'POSTPONED': return 'bg-warning';
-        default: return 'bg-secondary';
-    }
+    if (status === 'POSTPONED') return 'bg-warning';
+    return 'bg-success';
 }
 
 function getStatusText(status) {
-    switch(status) {
-        case 'SCHEDULED': return 'Upcoming';
-        case 'LIVE': return 'Live';
-        case 'IN_PLAY': return 'Live';
-        case 'FINISHED': return 'Finished';
-        case 'POSTPONED': return 'Postponed';
-        default: return status;
-    }
+    if (status === 'POSTPONED') return 'Postponed';
+    return 'Available';
 }
 
 function getTeamIcon(teamName) {
     return `data:image/svg+xml;base64,${btoa(`
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="40" height="40" rx="20" fill="#f8f9fa"/>
-            <text x="50%" y="50%" font-family="Arial" font-size="14" fill="#6c757d" text-anchor="middle" dy=".3em">${teamName.charAt(0)}</text>
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" rx="16" fill="#f8f9fa"/>
+            <text x="50%" y="50%" font-family="Arial" font-size="12" fill="#6c757d" text-anchor="middle" dy=".3em">${teamName.charAt(0)}</text>
         </svg>
     `)}`;
 }
@@ -337,16 +518,20 @@ function updateStats(matches) {
     document.getElementById('upcoming-matches').textContent = upcoming;
 }
 
-function showInitialView() {
-    document.getElementById('loading-state').classList.add('d-none');
-    document.getElementById('active-competition-title').textContent = 'Select a Competition';
-    document.getElementById('active-competition-subtitle').textContent = 'Click on a competition card above to view matches';
+function hideLoading() {
+    if (allMatches.length === 0) {
+        showEmptyState();
+    } else {
+        document.getElementById('loading-state').classList.add('d-none');
+        document.getElementById('matches-container').classList.remove('d-none');
+    }
 }
 
 function showLoading() {
     document.getElementById('loading-state').classList.remove('d-none');
     document.getElementById('error-state').classList.add('d-none');
     document.getElementById('empty-state').classList.add('d-none');
+    document.getElementById('no-filter-results').classList.add('d-none');
     document.getElementById('matches-container').classList.add('d-none');
 }
 
@@ -354,6 +539,7 @@ function showError() {
     document.getElementById('loading-state').classList.add('d-none');
     document.getElementById('error-state').classList.remove('d-none');
     document.getElementById('empty-state').classList.add('d-none');
+    document.getElementById('no-filter-results').classList.add('d-none');
     document.getElementById('matches-container').classList.add('d-none');
 }
 
@@ -361,108 +547,42 @@ function showEmptyState() {
     document.getElementById('loading-state').classList.add('d-none');
     document.getElementById('error-state').classList.add('d-none');
     document.getElementById('empty-state').classList.remove('d-none');
+    document.getElementById('no-filter-results').classList.add('d-none');
     document.getElementById('matches-container').classList.add('d-none');
-}
-
-function hideError() {
-    document.getElementById('error-state').classList.add('d-none');
 }
 
 function refreshData() {
     showLoading();
-    fetchAllCompetitions();
-}
-
-function sortMatches(criteria) {
-    if (!currentCompetition || !allMatches[currentCompetition]) return;
-    const matches = [...allMatches[currentCompetition].matches];
-    switch(criteria) {
-        case 'date':
-            matches.sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
-            break;
-        case 'league':
-            break;
-        case 'status':
-            const statusOrder = { 'LIVE': 1, 'IN_PLAY': 1, 'SCHEDULED': 2, 'FINISHED': 3, 'POSTPONED': 4 };
-            matches.sort((a, b) => (statusOrder[a.status] || 5) - (statusOrder[b.status] || 5));
-            break;
-    }
-    renderMatches(matches);
+    fetchPremierLeagueData();
 }
 
 function viewTickets(matchId) {
-    alert(`Viewing tickets for match ID: ${matchId}\nThis would redirect to ticket purchase page.`);
+    alert(`View tickets for match: ${matchId}`);
 }
 </script>
 
 <style>
 .premier-league-hero {
     background: linear-gradient(135deg, #38003c 0%, #00ff85 100%);
-    background-size: cover;
-    position: relative;
-    overflow: hidden;
-}
-
-.premier-league-hero::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMjAiIHN0cm9rZT0icmdiYSgyNTUsIDI1NSwgMjU1LCAwLjEpIiBzdHJva2Utd2lkdGg9IjIiLz48L3N2Zz4=');
-    opacity: 0.3;
 }
 
 .competition-card {
     cursor: pointer;
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
+    transition: all 0.2s ease;
 }
 
 .competition-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
-}
-
-.competition-card.champions-league:hover {
-    border-color: #6f42c1;
-}
-
-.competition-card.premier-league:hover {
-    border-color: #38003c;
-}
-
-.competition-card.world-cup:hover {
-    border-color: #198754;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
 }
 
 .competition-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-size: 1.2rem;
-}
-
-.bg-purple {
-    background-color: #6f42c1;
-}
-
-.bg-purple-light {
-    background-color: #e9d8fd;
-}
-
-.btn-purple {
-    background-color: #6f42c1;
-    color: white;
-}
-
-.btn-purple:hover {
-    background-color: #59359a;
     color: white;
 }
 
@@ -474,49 +594,10 @@ function viewTickets(matchId) {
     background-color: #e8d6e9;
 }
 
-.btn-primary {
-    background-color: #38003c;
-    border-color: #38003c;
-}
-
-.btn-primary:hover {
-    background-color: #2a002d;
-    border-color: #2a002d;
-}
-
-.bg-success {
-    background-color: #198754;
-}
-
-.bg-success-light {
-    background-color: #d1e7dd;
-}
-
 .team-crest {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     object-fit: contain;
-}
-
-.match-row:hover {
-    background-color: #f8f9fa;
-}
-
-.score-display .badge {
-    font-family: 'Courier New', monospace;
-}
-
-.vs-text {
-    font-weight: bold;
-    font-size: 1.1rem;
-}
-
-.table th {
-    font-weight: 600;
-    color: #495057;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 .btn-outline-primary {
@@ -530,12 +611,127 @@ function viewTickets(matchId) {
     color: white;
 }
 
-.table td:nth-child(3) {
-    text-align: center;
+.card {
+    border-radius: 12px;
 }
 
-.table td:nth-child(4) {
-    text-align: right;
+.btn-primary {
+    background-color: #38003c;
+    border-color: #38003c;
+}
+
+.btn-primary:hover {
+    background-color: #2a002d;
+    border-color: #2a002d;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #bb2d3b;
+    border-color: #bb2d3b;
+}
+
+.smaller {
+    font-size: 0.75rem;
+}
+
+.calendar-container {
+    animation: slideDown 0.3s ease-out;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    font-size: 0.75rem;
+}
+
+.calendar-header {
+    display: contents;
+}
+
+.calendar-day-header {
+    text-align: center;
+    font-weight: 600;
+    color: #495057;
+    padding: 4px 0;
+    font-size: 0.7rem;
+}
+
+.calendar-days {
+    display: contents;
+}
+
+.calendar-day {
+    text-align: center;
+    padding: 6px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+    font-size: 0.8rem;
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-day:hover {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.calendar-day.today {
+    background-color: #e7f1ff;
+    border-color: #0d6efd;
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+.calendar-day.selected {
+    background-color: #38003c;
+    color: white;
+    font-weight: 600;
+}
+
+.calendar-day.has-matches {
+    position: relative;
+}
+
+.calendar-day.has-matches::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 3px;
+    background-color: #00ff85;
+    border-radius: 50%;
+}
+
+.calendar-day.empty {
+    cursor: default;
+    background-color: transparent;
+}
+
+.calendar-day.empty:hover {
+    background-color: transparent;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 </style>
 @endsection

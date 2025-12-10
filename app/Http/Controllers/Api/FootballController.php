@@ -17,7 +17,7 @@ class FootballController extends Controller
     public function championsLeague()
     {
         try {
-            $data = $this->footballService->getCompetitionMatches('CL');
+            $data = $this->footballService->getChampionsLeagueMatches();
             return response()->json([
                 'success' => true,
                 'matches' => $data['matches'] ?? []
@@ -35,7 +35,7 @@ class FootballController extends Controller
     public function premierLeague()
     {
         try {
-            $data = $this->footballService->getCompetitionMatches('PL');
+            $data = $this->footballService->getPremierLeagueMatches();
             return response()->json([
                 'success' => true,
                 'matches' => $data['matches'] ?? []
@@ -53,7 +53,7 @@ class FootballController extends Controller
     public function worldCup()
     {
         try {
-            $data = $this->footballService->getCompetitionMatches('WC');
+            $data = $this->footballService->getWorldCupMatches();
             return response()->json([
                 'success' => true,
                 'matches' => $data['matches'] ?? []
