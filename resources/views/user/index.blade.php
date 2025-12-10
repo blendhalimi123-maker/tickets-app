@@ -99,7 +99,7 @@
 </div>
 
 <div class="recent-events mt-5">
-    <h5 class="fw-bold">📅 Upcoming Matches</h5>
+    <h5 class="fw-bold">Upcoming Matches</h5>
     <div class="event-item">
         <div class="d-flex justify-content-between align-items-center">
             <div>
