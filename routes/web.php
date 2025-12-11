@@ -13,7 +13,6 @@ Route::get('/', function () {
     return redirect()->route('user.dashboard');
 });
 
-
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
@@ -35,19 +34,17 @@ Route::middleware([RoleMiddleware::class . ':user,admin'])->group(function () {
 
 Route::get('/dashboard', function () {
     return view('user.index');
-})->middleware([RoleMiddleware::class . ':user'])->name('user.dashboard');
+})->name('user.dashboard');
+
+Route::get('/team-schedule', function () {
+    return view('football.schedule');
+})->name('football.schedule');
 
 Route::middleware([RoleMiddleware::class . ':user'])->group(function () {
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart/add/{ticket}', [CartController::class, 'add'])->name('cart.add');
     Route::post('/cart/remove/{cart}', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/cart/update/{cart}', [CartController::class, 'update'])->name('cart.update');
-});
-
-Route::middleware([RoleMiddleware::class . ':user,admin'])->group(function () {
-    Route::get('/team-schedule', function () {
-        return view('football.schedule');
-    })->name('football.schedule');
 });
 
 Route::prefix('api/football')->group(function () {

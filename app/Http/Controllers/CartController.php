@@ -11,6 +11,10 @@ class CartController extends Controller
 {
     public function index()
     {
+        if (!auth()->check()) {
+            return redirect()->route('login')->with('message', 'Please log in to view your cart.');
+        }
+
         $cartItems = Cart::with('ticket', 'seat')
             ->where('user_id', auth()->id())
             ->get();
@@ -24,6 +28,10 @@ class CartController extends Controller
 
     public function add(Ticket $ticket)
     {
+        if (!auth()->check()) {
+            return redirect()->route('login')->with('message', 'Please log in to add tickets to your cart.');
+        }
+
         $seat_id = request()->seat_id ?? null;
 
         if ($seat_id) {
@@ -61,7 +69,7 @@ class CartController extends Controller
 
     public function remove(Cart $cart)
     {
-        if ($cart->user_id !== auth()->id()) {
+        if (!auth()->check() || $cart->user_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -72,7 +80,7 @@ class CartController extends Controller
 
     public function update(Request $request, Cart $cart)
     {
-        if ($cart->user_id !== auth()->id()) {
+        if (!auth()->check() || $cart->user_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
 
