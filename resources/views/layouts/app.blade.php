@@ -303,14 +303,14 @@
         <ul class="sidebar-menu">
             <li>
                 <a href="{{ route('user.dashboard') }}" class="{{ request()->routeIs('user.dashboard') ? 'active' : '' }}">
-                    Home
+                    Dashboard
                 </a>
             </li>
             
             @if(Route::has('admin.index'))
             <li>
                 <a href="{{ route('admin.index') }}" class="{{ request()->routeIs('admin.index') ? 'active' : '' }}">
-                    Dashboard
+                    Home
                 </a>
             </li>
             @endif
@@ -322,12 +322,6 @@
                 </a>
             </li>
             @endif
-            
-            <li>
-                <a href="#">
-                    API Module
-                </a>
-            </li>
             
             @if(Route::has('password.change'))
             <li>
