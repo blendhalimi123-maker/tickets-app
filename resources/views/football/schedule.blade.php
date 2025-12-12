@@ -2,9 +2,9 @@
 
 @section('content')
 
-<div class="container-fluid px-0">
+<div class="full-width-page">
     <div class="premier-league-hero py-4">
-        <div class="container">
+        <div class="full-width-content">
             <div class="row align-items-center">
                 <div class="col-12">
                     <h1 class="display-6 fw-bold text-white mb-2">
@@ -18,7 +18,7 @@
         </div>
     </div>
 
-    <div class="container py-4">
+    <div class="full-width-content py-4">
         <div class="row">
             <div class="col-12">
                 <div class="card competition-card premier-league h-100 border-0 shadow-sm">
@@ -42,7 +42,7 @@
         </div>
     </div>
 
-    <div class="container py-4">
+    <div class="full-width-content py-4">
         <div class="card border-0 shadow">
             <div class="card-header bg-white border-0 py-3">
                 <div class="d-flex justify-content-between align-items-center">
@@ -147,15 +147,15 @@
                     </div>
                 </div>
 
-                <div id="matches-container" class="d-none p-3">
-                    <div id="matches-list">
+                <div id="matches-container" class="d-none">
+                    <div id="matches-list" class="p-3">
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="container py-4">
+    <div class="full-width-content py-4">
         <div class="row g-3">
             <div class="col-md-4">
                 <div class="card border-0 shadow-sm h-100">
@@ -187,7 +187,7 @@
         </div>
     </div>
 
-    <div class="container py-4">
+    <div class="full-width-content py-4">
         <div class="text-center">
             <a href="{{ url('/') }}" class="btn btn-outline-primary">
                 <i class="fas fa-arrow-left me-2"></i>Back to Home
@@ -562,8 +562,45 @@ function viewTickets(matchId) {
 </script>
 
 <style>
+.full-width-page {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.full-width-content {
+    width: 100%;
+    padding-left: 15px;
+    padding-right: 15px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (min-width: 1200px) {
+    .full-width-content {
+        max-width: 100%;
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+}
+
+@media (min-width: 1400px) {
+    .full-width-content {
+        padding-left: 50px;
+        padding-right: 50px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .full-width-content {
+        padding-left: 80px;
+        padding-right: 80px;
+    }
+}
+
 .premier-league-hero {
     background: linear-gradient(135deg, #38003c 0%, #00ff85 100%);
+    width: 100%;
 }
 
 .competition-card {
@@ -732,6 +769,30 @@ function viewTickets(matchId) {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+#matches-container {
+    width: 100%;
+}
+
+#matches-list .card {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+#matches-list .card-body {
+    padding: 20px;
+}
+
+#matches-list .row {
+    width: 100%;
+    margin: 0;
+}
+
+#matches-list .col-md-2,
+#matches-list .col-md-4 {
+    padding-left: 15px;
+    padding-right: 15px;
 }
 </style>
 @endsection

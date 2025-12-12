@@ -1,116 +1,506 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tickets App</title>
-
+    <title>@yield('title', 'Tickets App')</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    
+    <style>
+        :root {
+            --primary-color: #38003c;
+            --secondary-color: #00ff85;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, rgba(253,251,251,0.9) 0%, rgba(235,237,238,0.9) 100%),
+                        url('{{ asset('images/background.jpg') }}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        @if(auth()->check() && auth()->user()->isAdmin())
+        .admin-sidebar {
+            width: var(--sidebar-width);
+            background: #1e293b;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 1000;
+            color: white;
+            border-right: 3px solid var(--primary-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .admin-content {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        .admin-footer {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        .admin-navbar {
+            display: none !important;
+        }
+        @else
+        .admin-sidebar {
+            display: none !important;
+        }
+
+        .admin-content {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        .admin-footer {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        .admin-navbar {
+            display: flex !important;
+        }
+        @endif
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #334155;
+            background: #0f172a;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-header h5 {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            flex-grow: 1;
+            padding: 15px 0;
+            margin: 0;
+        }
+
+        .sidebar-menu li {
+            width: 100%;
+        }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 14px 25px;
+            color: #cbd5e1;
+            text-decoration: none;
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .sidebar-menu a:hover {
+            background: #2d3748;
+            border-left: 4px solid var(--primary-color);
+            color: white;
+        }
+
+        .sidebar-menu a.active {
+            background: #1e40af;
+            border-left: 4px solid var(--secondary-color);
+            color: white;
+        }
+
+        .sidebar-bottom {
+            border-top: 1px solid #334155;
+            padding: 20px;
+            background: #0f172a;
+        }
+
+        .sidebar-bottom button {
+            display: block;
+            width: 100%;
+            padding: 10px 0;
+            color: #cbd5e1;
+            text-decoration: none;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .sidebar-bottom button:hover {
+            color: var(--secondary-color);
+        }
+
+        .admin-top-bar {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: 60px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        /* .toggle-sidebar-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-sidebar-btn:hover {
+            background: #2a002d;
+            transform: translateY(-1px); */
+        }
+
+        .navbar-custom {
+            background: white !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 0.5rem 2rem;
+            min-height: 70px;
+        }
+
+        .navbar-brand-left {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary-color) !important;
+            margin-right: auto;
+            padding-left: 0;
+        }
+
+        .navbar-right-menu {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-left: auto;
+        }
+
+        .nav-link-custom {
+            color: #4b5563 !important;
+            font-weight: 500;
+            padding: 0.5rem 0.75rem !important;
+            transition: color 0.2s;
+        }
+
+        .nav-link-custom:hover {
+            color: var(--primary-color) !important;
+        }
+
+        .dropdown-toggle {
+            border: none;
+            background: none;
+            color: #4b5563;
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .dropdown-toggle:hover {
+            color: var(--primary-color);
+        }
+
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-radius: 10px;
+            padding: 0.5rem;
+            min-width: 220px;
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.1rem 0;
+            transition: all 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: #f3f4f6;
+        }
+
+        .dropdown-item.text-danger:hover {
+            background: #fee2e2;
+        }
+
+        .cart-badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            position: absolute;
+            top: -5px;
+            right: -8px;
+        }
+
+        .main-content {
+            min-height: calc(100vh - 120px);
+            padding: 2rem;
+        }
+
+        .content-card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 2rem;
+        }
+
+        .footer-custom {
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 1.5rem 2rem;
+            color: #6b7280;
+        }
+
+        @if(auth()->check() && auth()->user()->isAdmin())
+        .admin-content {
+            margin-top: 60px;
+            min-height: calc(100vh - 180px);
+        }
+        @endif
+    </style>
 </head>
 
-<body class="d-flex flex-column min-vh-100" style="
-    background:
-        linear-gradient(135deg, rgba(253,251,251,0.7) 0%, rgba(235,237,238,0.7) 100%),
-        url('{{ asset('images/background.jpg') }}');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-">
+<body>
+    @if(auth()->check() && auth()->user()->isAdmin())
+    <div class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-header">
+            <h5>Admin Panel</h5>
+        </div>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow sticky-top">
-        <div class="container">
-            <a class="navbar-brand text-primary fw-bold fs-3" href="{{ route('user.dashboard') }}">TicketsApp</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <ul class="sidebar-menu">
+            <li>
+                <a href="{{ route('user.dashboard') }}" class="{{ request()->routeIs('user.dashboard') ? 'active' : '' }}">
+                    Home
+                </a>
+            </li>
+            
+            @if(Route::has('admin.index'))
+            <li>
+                <a href="{{ route('admin.index') }}" class="{{ request()->routeIs('admin.index') ? 'active' : '' }}">
+                    Dashboard
+                </a>
+            </li>
+            @endif
+            
+            @if(Route::has('users.index'))
+            <li>
+                <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.index') ? 'active' : '' }}">
+                    Manage Users
+                </a>
+            </li>
+            @endif
+            
+            <li>
+                <a href="#">
+                    API Module
+                </a>
+            </li>
+            
+            @if(Route::has('password.change'))
+            <li>
+                <a href="{{ route('password.change') }}" class="{{ request()->routeIs('password.change') ? 'active' : '' }}">
+                    Settings
+                </a>
+            </li>
+            @endif
+            
+            @if(Route::has('tickets.create'))
+            <li>
+                <a href="{{ route('tickets.create') }}" class="{{ request()->routeIs('tickets.create') ? 'active' : '' }}">
+                    Create Ticket
+                </a>
+            </li>
+            @endif
+        </ul>
+
+        <div class="sidebar-bottom">
+            <div style="padding: 10px 0; color: #94a3b8; font-size: 14px;">
+                {{ auth()->user()->name }}
+            </div>
+            
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit">
+                    Logout
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- <div class="admin-top-bar" id="adminTopBar">
+        <button class="toggle-sidebar-btn" onclick="toggleSidebar()">
+            Toggle Sidebar
+        </button>
+    </div> -->
+
+    @else
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top admin-navbar">
+        <div class="container-fluid px-0">
+            <a class="navbar-brand navbar-brand-left" href="{{ route('user.dashboard') }}">
+                TicketsApp
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarRightContent">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('user.dashboard') }}">Home</a>
-                    </li>
-
-                    @if(auth()->check() && auth()->user()->isAdmin())
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('tickets.create') }}">Create Ticket</a>
-                        </li>
+            <div class="collapse navbar-collapse" id="navbarRightContent">
+                <div class="navbar-right-menu">
+                    @if(Route::has('user.dashboard'))
+                    <a class="nav-link-custom" href="{{ route('user.dashboard') }}">
+                        Home
+                    </a>
                     @endif
 
-                    @if(auth()->check() && auth()->user()->isUser())
-                        <li class="nav-item position-relative">
-                            <a class="nav-link" href="{{ route('cart.index') }}">
-                                🛒 Cart
-                                @php $cartCount = auth()->user()->cartCount(); @endphp
-                                @if($cartCount > 0)
-                                    <span
-                                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                        {{ $cartCount }}
-                                    </span>
-                                @endif
-                            </a>
-                        </li>
+                    @if(Route::has('football.schedule'))
+                    <a class="nav-link-custom" href="{{ route('football.schedule') }}">
+                        Team Schedule
+                    </a>
+                    @endif
+
+                    @if(auth()->check() && auth()->user()->isUser() && Route::has('cart.index'))
+                    <div class="position-relative">
+                        <a class="nav-link-custom" href="{{ route('cart.index') }}">
+                            Cart
+                            @php $cartCount = auth()->user()->cartCount(); @endphp
+                            @if($cartCount > 0)
+                                <span class="cart-badge badge bg-danger rounded-pill">
+                                    {{ $cartCount }}
+                                </span>
+                            @endif
+                        </a>
+                    </div>
                     @endif
 
                     @guest
-                        <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Login</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Register</a></li>
+                    @if(Route::has('login'))
+                    <a class="nav-link-custom" href="{{ route('login') }}">
+                        Login
+                    </a>
+                    @endif
+                    
+                    @if(Route::has('register'))
+                    <a class="nav-link-custom" href="{{ route('register') }}">
+                        Register
+                    </a>
+                    @endif
                     @else
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="settingsDropdown"
-                                role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <span class="me-1">⚙️</span> Settings
-                            </a>
-
-                            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="settingsDropdown"
-                                style="min-width: 250px;">
-                                <li class="dropdown-header text-center">
-                                    <strong>{{ Auth::user()->name }}</strong><br>
-                                    <small class="text-muted">{{ Auth::user()->email }}</small>
-                                </li>
-
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('password.change') }}">
-                                        🔐 Change Password
-                                    </a>
-                                </li>
-
-                                <li>
-                                    <form method="POST" action="{{ route('logout') }}">
-                                        @csrf
-                                        <button class="dropdown-item text-danger">🚪 Logout</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-
+                    <div class="dropdown">
+                        <a class="dropdown-toggle nav-link-custom" href="#" role="button" 
+                           id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            Settings
+                        </a>
+                        
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li class="dropdown-header text-center mb-2">
+                                <div class="fw-bold">{{ Auth::user()->name }}</div>
+                                <small class="text-muted">{{ Auth::user()->email }}</small>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            
+                            @if(Route::has('password.change'))
+                            <li>
+                                <a class="dropdown-item" href="{{ route('password.change') }}">
+                                    Change Password
+                                </a>
+                            </li>
+                            @endif
+                            
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
                     @endguest
-
-                </ul>
+                </div>
             </div>
         </div>
     </nav>
+    @endif
 
-    <main class="flex-grow-1 container my-5">
-        <div class="@yield('wrapper-class', 'shadow rounded-3 p-4 border')"
-            style="@yield('wrapper-style', 'background: rgba(255,255,255,0.85); backdrop-filter: blur(3px);')">
+    <main class="main-content admin-content">
+        <div class="content-card">
             @yield('content')
         </div>
     </main>
 
-    <footer class="bg-light text-center text-muted py-4 mt-auto">
-        &copy; {{ date('Y') }} Tickets App. All rights reserved.
+    <footer class="footer-custom admin-footer">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <span class="text-muted">&copy; {{ date('Y') }} Tickets App. All rights reserved.</span>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <span class="text-muted">v1.0.0</span>
+                </div>
+            </div>
+        </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/app.js') }}"></script>
-</body>
 
+    <script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('adminSidebar');
+        const topBar = document.getElementById('adminTopBar');
+        const mainContent = document.querySelector('.admin-content');
+        const footer = document.querySelector('.admin-footer');
+        
+        if (sidebar.style.width === '0px' || sidebar.style.width === '') {
+            sidebar.style.width = 'var(--sidebar-width)';
+            topBar.style.left = 'var(--sidebar-width)';
+            mainContent.style.marginLeft = 'var(--sidebar-width)';
+            mainContent.style.width = 'calc(100% - var(--sidebar-width))';
+            footer.style.marginLeft = 'var(--sidebar-width)';
+            footer.style.width = 'calc(100% - var(--sidebar-width))';
+        } else {
+            sidebar.style.width = '0';
+            topBar.style.left = '0';
+            mainContent.style.marginLeft = '0';
+            mainContent.style.width = '100%';
+            footer.style.marginLeft = '0';
+            footer.style.width = '100%';
+        }
+    }
+    </script>
+</body>
 </html>

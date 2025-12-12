@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\Api\FootballController as ApiFootballController;
 use App\Http\Controllers\StadiumController;
+use App\Http\Controllers\Admin\UserController;
 
 Route::get('/', function () {
     return redirect()->route('user.dashboard');
@@ -25,6 +26,13 @@ Route::middleware([RoleMiddleware::class . ':admin'])->group(function () {
     Route::get('/admin', function () {
         return view('admin.index');
     })->name('admin.index');
+    Route::get('/admin/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/admin/users/create', [UserController::class, 'create'])->name('users.create');
+    Route::post('/admin/users', [UserController::class, 'store'])->name('users.store');
+    Route::get('/admin/users/{user}', [UserController::class, 'show'])->name('users.show');
+    Route::get('/admin/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::put('/admin/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 });
 
 Route::middleware([RoleMiddleware::class . ':user,admin'])->group(function () {
