@@ -268,14 +268,9 @@
             padding: 2rem;
         }
 
-        .content-card {
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 2rem;
-        }
+        /* .content-card {
+          
+        } */
 
         .footer-custom {
             background: white;
@@ -470,7 +465,6 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ asset('js/app.js') }}"></script>
 
     <script>
     function toggleSidebar() {

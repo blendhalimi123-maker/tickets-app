@@ -35,8 +35,8 @@
                                         <td>{{ $user->id }}</td>
                                     </tr>
                                     <tr>
-                                        <th>Email Address</th>
-                                        <td>{{ $user->email }}</td>
+                                        <!-- <th>Email Address</th>
+                                        <td>{{ $user->email }}</td> -->
                                     </tr>
                                     <tr>
                                         <th>Account Created</th>
@@ -50,11 +50,11 @@
                             </div>
                         </div>
 
-                        <div class="mt-4">
+                        <!-- <div class="mt-4">
                             <div class="btn-group">
                                 <a href="mailto:{{ $user->email }}" class="btn btn-outline-primary">
                                     Send Email
-                                </a>
+                                </a> -->
                                 <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                                     Delete User
                                 </button>

@@ -479,7 +479,7 @@ function renderMatches(matches) {
             </div>
             <div class="row mt-3">
                 <div class="col-12 text-end">
-                    <button class="btn btn-primary btn-sm" onclick="viewTickets(${match.id})">
+                    <button class="btn btn-primary btn-sm" onclick="viewTickets('${match.id}')">
                         <i class="fas fa-ticket-alt me-1"></i>Get Tickets
                     </button>
                 </div>
@@ -557,7 +557,7 @@ function refreshData() {
 }
 
 function viewTickets(matchId) {
-    alert(`View tickets for match: ${matchId}`);
+    window.location.href = `/stadium/${matchId}`;
 }
 </script>
 

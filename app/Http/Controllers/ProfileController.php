@@ -8,13 +8,12 @@ use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
-    // Show the change password form
     public function editPassword()
     {
-        return view('profile.change-password'); // make sure this matches your Blade view path
+        return view('profile.change-password'); 
     }
 
-    // Handle the password update
+    
     public function updatePassword(Request $request)
     {
         $request->validate([
@@ -24,12 +23,12 @@ class ProfileController extends Controller
 
         $user = Auth::user();
 
-        // Check current password
+        
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'Current password is incorrect']);
         }
 
-        // Update password
+        
         $user->password = Hash::make($request->password);
         $user->save();
 

@@ -44,6 +44,7 @@
                                 <th>ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
+                                <th>Role</th>
                                 <th>Created</th>
                                 <th>Actions</th>
                             </tr>
@@ -54,6 +55,13 @@
                                     <td>{{ $user->id }}</td>
                                     <td>{{ $user->name }}</td>
                                     <td>{{ $user->email }}</td>
+                                    <td>
+                                        @if($user->isAdmin())
+                                            <span class="badge bg-danger">Admin</span>
+                                        @else
+                                            <span class="badge bg-primary">User</span>
+                                        @endif
+                                    </td>
                                     <td>{{ $user->created_at->format('Y-m-d') }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
@@ -68,35 +76,11 @@
                                                 Delete
                                             </button>
                                         </div>
-
-                                        <div class="modal fade" id="deleteModal{{ $user->id }}" tabindex="-1">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Confirm Delete</h5>
-                                                        <button type="button" class="btn-close"
-                                                            data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        Delete user <strong>{{ $user->name }}</strong>?
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary"
-                                                            data-bs-dismiss="modal">Cancel</button>
-                                                        <form action="{{ route('users.destroy', $user) }}" method="POST">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger">Delete</button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center">No users found.</td>
+                                    <td colspan="6" class="text-center">No users found.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -109,4 +93,28 @@
             </div>
         </div>
     </div>
+
+    @foreach($users as $user)
+        <div class="modal fade" id="deleteModal{{ $user->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirm Delete</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        Delete user <strong>{{ $user->name }}</strong>? This action cannot be undone.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form action="{{ route('users.destroy', $user) }}" method="POST">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
 @endsection

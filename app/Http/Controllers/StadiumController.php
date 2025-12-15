@@ -8,15 +8,19 @@ class StadiumController extends Controller
 {
     public function show($fixture_id)
     {
-        return view('stadium.index', ['fixture_id' => $fixture_id]);
+        $match = [
+            'id' => $fixture_id,
+            'team1' => 'Home Team',
+            'team2' => 'Away Team',
+            'match_date' => now()->addDays(7),
+            'stadium' => 'Main Stadium'
+        ];
+        
+        return view('seat', compact('match'));
     }
-
+    
     public function selectSeat(Request $request)
     {
-        return response()->json([
-            'success' => true,
-            'seat' => $request->input('seat_number'),
-            'message' => 'Seat selected successfully (placeholder)'
-        ]);
+        return back()->with('success', 'Seat selected!');
     }
 }
