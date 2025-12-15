@@ -35,6 +35,11 @@
                         <p class="card-text text-muted mb-3">Top English football league</p>
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="badge bg-primary-light text-primary" id="premier-count">230 matches</span>
+                            @if(auth()->check() && auth()->user()->isAdmin())
+                            <a href="/admin/tickets" class="btn btn-warning btn-sm">
+                                <i class="fas fa-cog me-1"></i>Manage All Tickets
+                            </a>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -57,6 +62,11 @@
                         <button class="btn btn-danger btn-sm" onclick="clearFilters()">
                             <i class="fas fa-times me-1"></i>Clear Filter
                         </button>
+                        @if(auth()->check() && auth()->user()->isAdmin())
+                        <a href="/admin/tickets" class="btn btn-warning btn-sm">
+                            <i class="fas fa-cog me-1"></i>Manage Tickets
+                        </a>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -432,6 +442,8 @@ function renderMatches(matches) {
     const container = document.getElementById('matches-list');
     container.innerHTML = '';
     
+    const isAdmin = {{ auth()->check() && auth()->user()->isAdmin() ? 'true' : 'false' }};
+    
     matches.forEach(match => {
         const matchDate = new Date(match.utcDate);
         const formattedDate = matchDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -440,6 +452,21 @@ function renderMatches(matches) {
         const statusText = getStatusText(match.status);
         const homeTeamCrest = match.homeTeam.crest || getTeamIcon(match.homeTeam.name);
         const awayTeamCrest = match.awayTeam.crest || getTeamIcon(match.awayTeam.name);
+        
+        let buttonHtml = '';
+        if (isAdmin) {
+            buttonHtml = `
+            <button class="btn btn-warning btn-sm" onclick="manageTickets('${match.id}')">
+                <i class="fas fa-cog me-1"></i>Manage Tickets
+            </button>
+            `;
+        } else {
+            buttonHtml = `
+            <button class="btn btn-primary btn-sm" onclick="viewTickets('${match.id}')">
+                <i class="fas fa-ticket-alt me-1"></i>Get Tickets
+            </button>
+            `;
+        }
         
         const matchCard = document.createElement('div');
         matchCard.className = 'card mb-3 border-0 shadow-sm';
@@ -479,9 +506,7 @@ function renderMatches(matches) {
             </div>
             <div class="row mt-3">
                 <div class="col-12 text-end">
-                    <button class="btn btn-primary btn-sm" onclick="viewTickets('${match.id}')">
-                        <i class="fas fa-ticket-alt me-1"></i>Get Tickets
-                    </button>
+                    ${buttonHtml}
                 </div>
             </div>
         </div>
@@ -558,6 +583,10 @@ function refreshData() {
 
 function viewTickets(matchId) {
     window.location.href = `/stadium/${matchId}`;
+}
+
+function manageTickets(matchId) {
+    window.location.href = `/admin/tickets/${matchId}`;
 }
 </script>
 
@@ -670,6 +699,18 @@ function viewTickets(matchId) {
 .btn-danger:hover {
     background-color: #bb2d3b;
     border-color: #bb2d3b;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+    color: #000;
 }
 
 .smaller {
