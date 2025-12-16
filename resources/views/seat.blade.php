@@ -21,8 +21,8 @@
             <div class="card-body">
                 <h4>Stadium Layout</h4>
                 <div class="text-center">
-                    <div class="bg-success text-white p-3 mb-4">PITCH</div>
-                    
+                    <!-- <div class="bg-success text-white p-3 mb-4">PITCH</div>
+                     -->
                     <div class="stadium-seats">
                         @for($row = 'A'; $row <= 'E'; $row++)
                             <div class="d-flex justify-content-center mb-2">

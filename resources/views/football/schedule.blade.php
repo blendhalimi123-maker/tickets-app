@@ -18,6 +18,11 @@
         </div>
     </div>
 
+    @section('head')
+    @parent
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    @endsection
+
     <div class="full-width-content py-4">
         <div class="row">
             <div class="col-12">
@@ -56,9 +61,6 @@
                         <p class="text-muted mb-0 small" id="active-competition-subtitle">230 matches total</p>
                     </div>
                     <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-primary btn-sm" id="calendar-toggle-btn" onclick="toggleCalendar()">
-                            <i class="fas fa-calendar me-1"></i>Sort by Date
-                        </button>
                         <button class="btn btn-danger btn-sm" onclick="clearFilters()">
                             <i class="fas fa-times me-1"></i>Clear Filter
                         </button>
@@ -72,52 +74,27 @@
             </div>
             
             <div class="card-body border-bottom p-3 bg-light">
-                <div class="row">
-                    <div class="col-md-6">
+                <div class="row align-items-end">
+                    <div class="col-md-4">
                         <label class="form-label small fw-bold">Filter by Team Name</label>
                         <input type="text" class="form-control" id="team-filter" 
                                placeholder="Search team name..." onkeyup="applyFilters()">
                     </div>
-                    <div class="col-md-6 d-flex align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Filter by Date</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="date-filter" 
+                                   placeholder="Select date...">
+                            <button class="btn btn-outline-secondary" type="button" onclick="clearDateFilter()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
                         <div class="w-100">
                             <div class="small text-muted" id="filter-results-count">Showing all 230 matches</div>
+                            <div class="small text-primary fw-bold d-none" id="date-filter-display"></div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="calendar-container p-2 border-bottom bg-white d-none" id="calendar-container">
-                <div class="calendar-wrapper">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <button class="btn btn-sm btn-outline-secondary p-1" onclick="prevMonth()">
-                            <i class="fas fa-chevron-left fa-xs"></i>
-                        </button>
-                        <h6 class="fw-bold mb-0 fs-6" id="calendar-month">April 2024</h6>
-                        <button class="btn btn-sm btn-outline-secondary p-1" onclick="nextMonth()">
-                            <i class="fas fa-chevron-right fa-xs"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="calendar-grid mb-2">
-                        <div class="calendar-header">
-                            <div class="calendar-day-header">S</div>
-                            <div class="calendar-day-header">M</div>
-                            <div class="calendar-day-header">T</div>
-                            <div class="calendar-day-header">W</div>
-                            <div class="calendar-day-header">T</div>
-                            <div class="calendar-day-header">F</div>
-                            <div class="calendar-day-header">S</div>
-                        </div>
-                        <div class="calendar-days" id="calendar-days"></div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between">
-                        <button class="btn btn-sm btn-outline-primary p-1" onclick="selectToday()">
-                            <i class="fas fa-calendar-day me-1 fa-xs"></i>Today
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger p-1" onclick="clearDateFilter()">
-                            <i class="fas fa-times me-1 fa-xs"></i>Clear Date
-                        </button>
                     </div>
                 </div>
             </div>
@@ -206,19 +183,18 @@
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     fetchPremierLeagueData();
     setInterval(refreshData, 30000);
-    initializeCalendar();
+    initializeDatepicker();
 });
 
 let allMatches = [];
 let currentFilteredMatches = [];
-let isCalendarVisible = false;
 let selectedDate = null;
-let currentMonth = new Date().getMonth();
-let currentYear = new Date().getFullYear();
 
 async function fetchPremierLeagueData() {
     try {
@@ -240,120 +216,52 @@ async function fetchPremierLeagueData() {
     }
 }
 
-function toggleCalendar() {
-    const calendarContainer = document.getElementById('calendar-container');
-    const calendarBtn = document.getElementById('calendar-toggle-btn');
+function initializeDatepicker() {
+    $('#date-filter').datepicker({
+        dateFormat: 'yy-mm-dd',
+        showButtonPanel: true,
+        changeMonth: true,
+        changeYear: true,
+        yearRange: '2023:2025',
+        onSelect: function(dateText) {
+            selectedDate = new Date(dateText);
+            updateDateDisplay(selectedDate);
+            applyFilters();
+        },
+        beforeShowDay: function(date) {
+            const hasMatches = allMatches.some(match => {
+                const matchDate = new Date(match.utcDate);
+                return date.getDate() === matchDate.getDate() &&
+                       date.getMonth() === matchDate.getMonth() &&
+                       date.getFullYear() === matchDate.getFullYear();
+            });
+            
+            if (hasMatches) {
+                return [true, 'has-matches', 'Matches available'];
+            }
+            return [true, '', ''];
+        }
+    });
     
-    isCalendarVisible = !isCalendarVisible;
-    
-    if (isCalendarVisible) {
-        calendarContainer.classList.remove('d-none');
-        calendarBtn.innerHTML = '<i class="fas fa-calendar-times me-1"></i>Hide Calendar';
-        calendarBtn.classList.remove('btn-primary');
-        calendarBtn.classList.add('btn-secondary');
-        renderCalendar();
-    } else {
-        calendarContainer.classList.add('d-none');
-        calendarBtn.innerHTML = '<i class="fas fa-calendar me-1"></i>Sort by Date';
-        calendarBtn.classList.remove('btn-secondary');
-        calendarBtn.classList.add('btn-primary');
-    }
+    $('#date-filter').click(function() {
+        $(this).datepicker('show');
+    });
 }
 
-function initializeCalendar() {
-    const today = new Date();
-    currentMonth = today.getMonth();
-    currentYear = today.getFullYear();
-}
-
-function renderCalendar() {
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    document.getElementById('calendar-month').textContent = `${monthNames[currentMonth]} ${currentYear}`;
-    
-    const firstDay = new Date(currentYear, currentMonth, 1);
-    const lastDay = new Date(currentYear, currentMonth + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDay = firstDay.getDay();
-    
-    const calendarDays = document.getElementById('calendar-days');
-    calendarDays.innerHTML = '';
-    
-    const today = new Date();
-    const todayDate = today.getDate();
-    const todayMonth = today.getMonth();
-    const todayYear = today.getFullYear();
-    
-    for (let i = 0; i < startingDay; i++) {
-        const emptyDay = document.createElement('div');
-        emptyDay.className = 'calendar-day empty';
-        calendarDays.appendChild(emptyDay);
-    }
-    
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dayElement = document.createElement('div');
-        dayElement.className = 'calendar-day';
-        dayElement.textContent = day;
-        
-        const date = new Date(currentYear, currentMonth, day);
-        
-        if (day === todayDate && currentMonth === todayMonth && currentYear === todayYear) {
-            dayElement.classList.add('today');
-        }
-        
-        if (selectedDate && date.toDateString() === selectedDate.toDateString()) {
-            dayElement.classList.add('selected');
-        }
-        
-        const hasMatches = allMatches.some(match => {
-            const matchDate = new Date(match.utcDate);
-            return matchDate.getDate() === day && 
-                   matchDate.getMonth() === currentMonth && 
-                   matchDate.getFullYear() === currentYear;
+function updateDateDisplay(date) {
+    const displayElement = document.getElementById('date-filter-display');
+    if (date) {
+        const formattedDate = date.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
         });
-        
-        if (hasMatches) {
-            dayElement.classList.add('has-matches');
-        }
-        
-        dayElement.onclick = function() {
-            selectCalendarDay(day);
-        };
-        
-        calendarDays.appendChild(dayElement);
+        displayElement.textContent = `Filtering: ${formattedDate}`;
+        displayElement.classList.remove('d-none');
+    } else {
+        displayElement.classList.add('d-none');
     }
-}
-
-function selectCalendarDay(day) {
-    selectedDate = new Date(currentYear, currentMonth, day);
-    applyFilters();
-    toggleCalendar();
-}
-
-function prevMonth() {
-    currentMonth--;
-    if (currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
-    }
-    renderCalendar();
-}
-
-function nextMonth() {
-    currentMonth++;
-    if (currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
-    }
-    renderCalendar();
-}
-
-function selectToday() {
-    const today = new Date();
-    selectedDate = today;
-    currentMonth = today.getMonth();
-    currentYear = today.getFullYear();
-    applyFilters();
-    toggleCalendar();
 }
 
 function applyFilters() {
@@ -401,7 +309,7 @@ function applyFilters() {
 
 function clearFilters() {
     document.getElementById('team-filter').value = '';
-    selectedDate = null;
+    clearDateFilter();
     currentFilteredMatches = [...allMatches];
     sortByDate();
     updateStats(currentFilteredMatches);
@@ -413,8 +321,9 @@ function clearFilters() {
 
 function clearDateFilter() {
     selectedDate = null;
+    document.getElementById('date-filter').value = '';
+    document.getElementById('date-filter-display').classList.add('d-none');
     applyFilters();
-    toggleCalendar();
 }
 
 function updateFilterResultsCount() {
@@ -717,101 +626,6 @@ function manageTickets(matchId) {
     font-size: 0.75rem;
 }
 
-.calendar-container {
-    animation: slideDown 0.3s ease-out;
-}
-
-.calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 2px;
-    font-size: 0.75rem;
-}
-
-.calendar-header {
-    display: contents;
-}
-
-.calendar-day-header {
-    text-align: center;
-    font-weight: 600;
-    color: #495057;
-    padding: 4px 0;
-    font-size: 0.7rem;
-}
-
-.calendar-days {
-    display: contents;
-}
-
-.calendar-day {
-    text-align: center;
-    padding: 6px 0;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 1px solid transparent;
-    font-size: 0.8rem;
-    min-height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.calendar-day:hover {
-    background-color: #f8f9fa;
-    border-color: #dee2e6;
-}
-
-.calendar-day.today {
-    background-color: #e7f1ff;
-    border-color: #0d6efd;
-    color: #0d6efd;
-    font-weight: 600;
-}
-
-.calendar-day.selected {
-    background-color: #38003c;
-    color: white;
-    font-weight: 600;
-}
-
-.calendar-day.has-matches {
-    position: relative;
-}
-
-.calendar-day.has-matches::after {
-    content: '';
-    position: absolute;
-    bottom: 2px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 3px;
-    height: 3px;
-    background-color: #00ff85;
-    border-radius: 50%;
-}
-
-.calendar-day.empty {
-    cursor: default;
-    background-color: transparent;
-}
-
-.calendar-day.empty:hover {
-    background-color: transparent;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 #matches-container {
     width: 100%;
 }
@@ -834,6 +648,181 @@ function manageTickets(matchId) {
 #matches-list .col-md-4 {
     padding-left: 15px;
     padding-right: 15px;
+}
+
+.ui-datepicker {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    font-size: 14px;
+}
+
+.ui-datepicker-header {
+    background: white;
+    color: #38003c;
+    border: none;
+    border-radius: 6px 6px 0 0;
+    padding: 20px 40px;
+    position: relative;
+    text-align: center;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ui-datepicker-title {
+    font-weight: 600;
+    color: #38003c;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.ui-datepicker-title .ui-datepicker-month {
+    order: 1;
+    margin-right: 5px;
+}
+
+.ui-datepicker-title .ui-datepicker-year {
+    order: 2;
+}
+
+.ui-datepicker-prev, .ui-datepicker-next {
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background: white;
+    border: 1px solid #dee2e6;
+    font-size: 16px;
+}
+
+.ui-datepicker-prev {
+    left: 10px;
+}
+
+.ui-datepicker-next {
+    right: 10px;
+}
+
+.ui-datepicker-prev:hover, .ui-datepicker-next:hover {
+    background: #f8f9fa;
+    border-color: #38003c;
+}
+
+.ui-datepicker-prev .ui-icon, .ui-datepicker-next .ui-icon {
+    display: none;
+}
+
+.ui-datepicker-prev:after {
+    content: '←';
+    font-weight: bold;
+    color: #38003c;
+}
+
+.ui-datepicker-next:after {
+    content: '→';
+    font-weight: bold;
+    color: #38003c;
+}
+
+.ui-datepicker-calendar {
+    margin-top: 10px;
+}
+
+.ui-datepicker-calendar th {
+    color: #38003c;
+    font-weight: 600;
+    padding: 8px;
+    font-size: 13px;
+}
+
+.ui-datepicker-calendar td {
+    padding: 3px;
+}
+
+.ui-datepicker-calendar td a {
+    text-align: center;
+    padding: 8px 6px;
+    border-radius: 4px;
+    color: #495057;
+    text-decoration: none;
+    display: block;
+    font-size: 13px;
+}
+
+.ui-datepicker-calendar td a:hover {
+    background: #f8f9fa;
+    color: #38003c;
+}
+
+.ui-datepicker-calendar td a.ui-state-active {
+    background: #38003c;
+    color: white;
+}
+
+.ui-datepicker-calendar td.has-matches a {
+    position: relative;
+    color: #38003c;
+    font-weight: 500;
+}
+
+.ui-datepicker-calendar td.has-matches a::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background-color: #00ff85;
+    border-radius: 50%;
+}
+
+.ui-datepicker-today a {
+    background: #e7f1ff;
+    border: 1px solid #0d6efd;
+    color: #0d6efd;
+}
+
+.ui-datepicker-buttonpane {
+    background: white;
+    border-top: 1px solid #dee2e6;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.ui-datepicker-buttonpane button {
+    background: #38003c;
+    color: white;
+    border: none;
+    padding: 6px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0 5px;
+    font-size: 13px;
+}
+
+.ui-datepicker-buttonpane button:hover {
+    background: #2a002d;
+}
+
+.ui-datepicker-close {
+    background: #dc3545 !important;
+}
+
+.ui-datepicker-close:hover {
+    background: #bb2d3b !important;
 }
 </style>
 @endsection
