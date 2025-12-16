@@ -9,5 +9,16 @@ class Seat extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['fixture_id', 'row', 'number', 'is_booked'];
+    protected $fillable = [
+        'fixture_id',
+        'match_id',
+        'seat_identifier',
+        'seat_info',
+        'row',
+        'number',
+        'stand',
+        'category',
+        'price',
+        'is_booked'
+    ];
 }

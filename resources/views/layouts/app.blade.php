@@ -194,6 +194,7 @@
             transition: all 0.3s;
             display: inline-block;
             margin-right: auto;
+            margin-left: 230px; 
         }
 
         .navbar-brand-container:hover {
@@ -365,21 +366,15 @@
                     </a>
                     @endif
 
-                    @if(Route::has('football.schedule'))
-                    <a class="nav-link-custom" href="{{ route('football.schedule') }}">
-                        Team Schedule
-                    </a>
-                    @endif
-
                     @if(auth()->check() && auth()->user()->isUser() && Route::has('cart.index'))
                     <div class="position-relative">
                         <a class="nav-link-custom" href="{{ route('cart.index') }}">
                             Cart
                             @php $cartCount = auth()->user()->cartCount(); @endphp
                             @if($cartCount > 0)
-                                <span class="cart-badge badge bg-danger rounded-pill">
-                                    {{ $cartCount }}
-                                </span>
+                            <span class="cart-badge badge bg-danger rounded-pill">
+                                {{ $cartCount }}
+                            </span>
                             @endif
                         </a>
                     </div>
@@ -393,8 +388,7 @@
                     @endif
                     @else
                     <div class="dropdown">
-                        <a class="dropdown-toggle nav-link-custom" href="#" role="button" 
-                           id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="dropdown-toggle nav-link-custom" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             Settings
                         </a>
                         
