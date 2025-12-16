@@ -105,32 +105,15 @@
     background: #e9ecef;
     color: #333;
 }
-.image-footer {
-    margin-top: 3rem;
-    border-radius: 12px;
-    overflow: hidden;
-    height: 200px;
-    position: relative;
+.dashboard-image {
+    margin-top: 2rem;
 }
-.image-footer img {
+.dashboard-image img {
     width: 100%;
-    height: 100%;
+    max-height: 280px;
     object-fit: cover;
+    border-radius: 12px;
     display: block;
-}
-.image-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.2rem;
-    font-weight: 600;
 }
 </style>
 
@@ -199,11 +182,8 @@
         </div>
     </div>
 
-    <div class="image-footer">
-        <img src="/images/premier-bg.jpg" alt="Premier League Players">
-        <div class="image-overlay">
-            Premier League Stars
-        </div>
+    <div class="dashboard-image">
+        <img src="{{ asset('images/test.jpg') }}" alt="Premier League Players">
     </div>
 </div>
 
