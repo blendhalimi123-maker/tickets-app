@@ -2,9 +2,9 @@
 
 @section('content')
 
-<div class="full-width-page">
-    <div class="premier-league-hero py-4">
-        <div class="full-width-content">
+<div class="container-lg custom-container">
+    <div class="premier-league-hero py-4 rounded-top-4">
+        <div class="container-lg">
             <div class="row align-items-center">
                 <div class="col-12">
                     <h1 class="display-6 fw-bold text-white mb-2">
@@ -23,7 +23,7 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     @endsection
 
-    <div class="full-width-content py-4">
+    <div class="py-4">
         <div class="row">
             <div class="col-12">
                 <div class="card competition-card premier-league h-100 border-0 shadow-sm">
@@ -52,7 +52,7 @@
         </div>
     </div>
 
-    <div class="full-width-content py-4">
+    <div class="py-4">
         <div class="card border-0 shadow">
             <div class="card-header bg-white border-0 py-3">
                 <div class="d-flex justify-content-between align-items-center">
@@ -142,7 +142,7 @@
         </div>
     </div>
 
-    <div class="full-width-content py-4">
+    <div class="py-4">
         <div class="row g-3">
             <div class="col-md-4">
                 <div class="card border-0 shadow-sm h-100">
@@ -174,7 +174,7 @@
         </div>
     </div>
 
-    <div class="full-width-content py-4">
+    <div class="py-4">
         <div class="text-center">
             <a href="{{ url('/') }}" class="btn btn-outline-primary">
                 <i class="fas fa-arrow-left me-2"></i>Back to Home
@@ -351,7 +351,7 @@ function renderMatches(matches) {
     const container = document.getElementById('matches-list');
     container.innerHTML = '';
     
-    const isAdmin = {{ auth()->check() && auth()->user()->isAdmin() ? 'true' : 'false' }};
+    const isAdmin = <?php echo auth()->check() && auth()->user()->isAdmin() ? 'true' : 'false'; ?>;
     
     matches.forEach(match => {
         const matchDate = new Date(match.utcDate);
@@ -500,45 +500,20 @@ function manageTickets(matchId) {
 </script>
 
 <style>
-.full-width-page {
+.custom-container {
+    max-width: 1400px; /* Approximately 75-80% of typical 1920px screen */
     width: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-.full-width-content {
-    width: 100%;
-    padding-left: 15px;
-    padding-right: 15px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-@media (min-width: 1200px) {
-    .full-width-content {
-        max-width: 100%;
-        padding-left: 30px;
-        padding-right: 30px;
-    }
-}
-
-@media (min-width: 1400px) {
-    .full-width-content {
-        padding-left: 50px;
-        padding-right: 50px;
-    }
-}
-
-@media (min-width: 1600px) {
-    .full-width-content {
-        padding-left: 80px;
-        padding-right: 80px;
-    }
+    margin: 0 auto;
 }
 
 .premier-league-hero {
     background: linear-gradient(135deg, #38003c 0%, #00ff85 100%);
     width: 100%;
+}
+
+.rounded-top-4 {
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
 }
 
 .competition-card {

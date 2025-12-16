@@ -31,6 +31,7 @@
             background-repeat: no-repeat;
             background-attachment: fixed;
             min-height: 100vh;
+            padding-top: 70px;
         }
 
         @if(auth()->check() && auth()->user()->isAdmin())
@@ -170,36 +171,36 @@
             padding: 0 20px;
         }
 
-        /* .toggle-sidebar-btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 15px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .toggle-sidebar-btn:hover {
-            background: #2a002d;
-            transform: translateY(-1px); */
-        }
-
         .navbar-custom {
             background: white !important;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             padding: 0.5rem 2rem;
             min-height: 70px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
         }
 
-        .navbar-brand-left {
+        .navbar-brand-container {
+            background: var(--primary-color);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 10px;
             font-size: 1.8rem;
             font-weight: 800;
-            color: var(--primary-color) !important;
+            text-decoration: none;
+            transition: all 0.3s;
+            display: inline-block;
             margin-right: auto;
-            padding-left: 0;
+        }
+
+        .navbar-brand-container:hover {
+            background: #2a002d;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(56, 0, 60, 0.3);
         }
 
         .navbar-right-menu {
@@ -267,10 +268,6 @@
             min-height: calc(100vh - 120px);
             padding: 2rem;
         }
-
-        /* .content-card {
-          
-        } */
 
         .footer-custom {
             background: white;
@@ -349,17 +346,11 @@
         </div>
     </div>
 
-    <!-- <div class="admin-top-bar" id="adminTopBar">
-        <button class="toggle-sidebar-btn" onclick="toggleSidebar()">
-            Toggle Sidebar
-        </button>
-    </div> -->
-
     @else
-    <nav class="navbar navbar-expand-lg navbar-custom sticky-top admin-navbar">
+    <nav class="navbar navbar-expand-lg navbar-custom admin-navbar">
         <div class="container-fluid px-0">
-            <a class="navbar-brand navbar-brand-left" href="{{ route('user.dashboard') }}">
-                TicketsApp
+            <a class="navbar-brand-container" href="{{ route('user.dashboard') }}">
+                TICKETSAPP
             </a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarRightContent">
@@ -397,13 +388,7 @@
                     @guest
                     @if(Route::has('login'))
                     <a class="nav-link-custom" href="{{ route('login') }}">
-                        Login
-                    </a>
-                    @endif
-                    
-                    @if(Route::has('register'))
-                    <a class="nav-link-custom" href="{{ route('register') }}">
-                        Register
+                        Sign in
                     </a>
                     @endif
                     @else
