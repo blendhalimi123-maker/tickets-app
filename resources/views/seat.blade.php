@@ -211,13 +211,30 @@
 </head>
 <body>
     <div class="container mt-4">
+        @php
+            $gameData = cache()->get("game_{$match['id']}", [
+                'title' => $match['team1'] . ' vs ' . $match['team2'],
+                'home_team' => $match['team1'],
+                'away_team' => $match['team2'],
+                'stadium' => $match['stadium'],
+                'match_date' => $match['match_date']->format('Y-m-d H:i:s'),
+            ]);
+            
+            $gamePrices = cache()->get("prices_{$match['id']}", [
+                'category1' => 85.00,
+                'category2' => 65.00,
+                'category3' => 45.00,
+                'category4' => 35.00,
+            ]);
+        @endphp
+
         <div class="card mb-4">
             <div class="card-body">
-                <h1 class="mb-3">{{ $match['team1'] }} vs {{ $match['team2'] }}</h1>
+                <h1 class="mb-3">{{ $gameData['title'] }}</h1>
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong>Date:</strong> {{ $match['match_date']->format('Y-m-d H:i') }}</p>
-                        <p><strong>Stadium:</strong> {{ $match['stadium'] }}</p>
+                        <p><strong>Date:</strong> {{ \Carbon\Carbon::parse($gameData['match_date'])->format('Y-m-d H:i') }}</p>
+                        <p><strong>Stadium:</strong> {{ $gameData['stadium'] }}</p>
                     </div>
                     <div class="col-md-6">
                         <p><strong>Match ID:</strong> {{ $match['id'] }}</p>
@@ -230,19 +247,19 @@
         <div class="stadium-legend mb-4">
             <div class="legend-item">
                 <div class="seat-sample category1"></div>
-                <span>Category 1 - Premium</span>
+                <span>Category 1 - ${{ $gamePrices['category1'] }}</span>
             </div>
             <div class="legend-item">
                 <div class="seat-sample category2"></div>
-                <span>Category 2 - Standard Plus</span>
+                <span>Category 2 - ${{ $gamePrices['category2'] }}</span>
             </div>
             <div class="legend-item">
                 <div class="seat-sample category3"></div>
-                <span>Category 3 - Standard</span>
+                <span>Category 3 - ${{ $gamePrices['category3'] }}</span>
             </div>
             <div class="legend-item">
                 <div class="seat-sample category4"></div>
-                <span>Category 4 - Economy</span>
+                <span>Category 4 - ${{ $gamePrices['category4'] }}</span>
             </div>
             <div class="legend-item">
                 <div class="seat-sample sold"></div>
@@ -292,11 +309,14 @@
                     </div>
                 </div>
                 
-                <form method="POST" action="{{ route('cart.addStadiumSeats') }}" class="mt-4" id="stadium-cart-form">
+                <form method="POST" action="{{ route('cart.add-multiple-seats') }}" class="mt-4" id="stadium-cart-form">
                     @csrf
-                    <input type="hidden" name="match_id" value="{{ $match['id'] }}">
-                    <input type="hidden" name="match_info" value="{{ json_encode($match) }}">
-                    <input type="hidden" name="selected_seats" id="selected_seats" value="[]">
+                    <input type="hidden" name="api_game_id" value="{{ $match['id'] }}">
+                    <input type="hidden" name="home_team" value="{{ $gameData['home_team'] }}">
+                    <input type="hidden" name="away_team" value="{{ $gameData['away_team'] }}">
+                    <input type="hidden" name="match_date" value="{{ $gameData['match_date'] }}">
+                    <input type="hidden" name="stadium" value="{{ $gameData['stadium'] }}">
+                    <input type="hidden" name="selected_seats_json" id="selected_seats_json" value="[]">
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                         <a href="javascript:history.back()" class="btn btn-secondary btn-lg me-md-2">Back</a>
@@ -316,14 +336,14 @@
 
     <script>
         let selectedSeats = new Set();
-        const seatPrices = {
-            'category1': 85.00,
-            'category2': 65.00,
-            'category3': 45.00,
-            'category4': 35.00
+        let seatPrices = {
+            'category1': {{ $gamePrices['category1'] }},
+            'category2': {{ $gamePrices['category2'] }},
+            'category3': {{ $gamePrices['category3'] }},
+            'category4': {{ $gamePrices['category4'] }}
         };
         
-        const maxSeatsPerOrder = 6;
+        const maxSeatsPerOrder = 4;
         const soldSeats = new Set(['north_A_1', 'north_A_2', 'north_B_5', 'east_C_10', 'west_A_8']);
         
         function generateSeats() {
@@ -398,7 +418,7 @@
                 seatElement.classList.remove('selected');
             } else {
                 if (selectedSeats.size >= maxSeatsPerOrder) {
-                    alert(`Maximum ${maxSeatsPerOrder} tickets per order`);
+                    alert(`Maximum ${maxSeatsPerOrder} seats per order`);
                     return;
                 }
                 selectedSeats.add(seatId);
@@ -410,33 +430,32 @@
         
         function updateSelectionUI() {
             const seatsArray = Array.from(selectedSeats);
-            const selectedSeatsInput = document.getElementById('selected_seats');
             const addToCartBtn = document.getElementById('add-to-cart-btn');
             const seatCountSpan = document.getElementById('seat-count');
             const confirmPriceSpan = document.getElementById('confirm-price');
             const infoCard = document.getElementById('seat-info-card');
             const selectedSeatsList = document.getElementById('selected-seats-list');
             const totalPriceSpan = document.getElementById('total-price');
+            const selectedSeatsJson = document.getElementById('selected_seats_json');
             
-            const seatsData = seatsArray.map(seatId => {
+            let totalPrice = 0;
+            let seatsData = [];
+            
+            seatsArray.forEach(seatId => {
                 const seatElement = document.querySelector(`[data-seat-id="${seatId}"]`);
-                return {
+                totalPrice += parseFloat(seatElement.dataset.price);
+                
+                seatsData.push({
                     id: seatId,
                     stand: seatElement.dataset.stand,
                     row: seatElement.dataset.row,
                     number: seatElement.dataset.number,
                     category: seatElement.dataset.category,
                     price: parseFloat(seatElement.dataset.price)
-                };
+                });
             });
             
-            selectedSeatsInput.value = JSON.stringify(seatsData);
-            
-            let totalPrice = 0;
-            seatsArray.forEach(seatId => {
-                const seatElement = document.querySelector(`[data-seat-id="${seatId}"]`);
-                totalPrice += parseFloat(seatElement.dataset.price);
-            });
+            selectedSeatsJson.value = JSON.stringify(seatsData);
             
             seatCountSpan.textContent = selectedSeats.size;
             confirmPriceSpan.textContent = totalPrice.toFixed(2);

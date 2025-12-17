@@ -1,149 +1,148 @@
 @extends('layouts.app')
 
 @section('content')
-
-<style>
-    body {
-        background: linear-gradient(135deg, #eef2ff, #f8f9ff);
-    }
-
-    .cart-card {
-        background: rgba(255, 255, 255, 0.85);
-        border: 1px solid rgba(0, 0, 0, 0.05);
-        backdrop-filter: blur(6px);
-        transition: .25s ease-in-out;
-        border-radius: 18px !important;
-    }
-    .cart-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 18px 40px rgba(0,0,0,0.12);
-    }
-
-    .summary-card {
-        background: linear-gradient(135deg, #ffffff, #eef1ff);
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    }
-
-    .quantity-box {
-        width: 70px;
-        border-radius: 8px;
-    }
-
-    .price-tag {
-        font-size: 1.4rem;
-        color: #2d3748;
-    }
-
-    .divider {
-        height: 2px;
-        background: linear-gradient(90deg, #6c63ff, #42a5f5);
-        width: 70px;
-        margin: 12px 0;
-        border-radius: 6px;
-    }
-</style>
-
 <div class="container py-5">
-
-    <h1 class="fw-bold text-center mb-2">🛒 Your Shopping Cart</h1>
-    <p class="text-center text-muted mb-5">Review your items before checkout</p>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fw-bold mb-0">🛒 Your Cart</h1>
+        <span class="badge bg-primary fs-6">
+            {{ $cartItems->count() }} {{ Str::plural('item', $cartItems->count()) }}
+        </span>
+    </div>
 
     @if(session('success'))
-        <div class="alert alert-success text-center shadow-sm">{{ session('success') }}</div>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
     @endif
 
     @if($cartItems->isEmpty())
-
-        <div class="alert alert-info text-center fw-semibold shadow-sm p-4 rounded-4">
-            Your cart is empty.  
-            <a href="{{ route('tickets.index') }}" class="text-decoration-underline fw-bold">
-                Browse tickets
+        <div class="text-center py-5">
+            <div class="mb-4" style="font-size: 4rem;">🛍️</div>
+            <h3 class="mb-3">Your cart is empty</h3>
+            <p class="text-muted mb-4">Browse Premier League games and select seats to get started!</p>
+            <a href="{{ route('football.schedule') }}" class="btn btn-primary btn-lg">
+                Browse Games <i class="bi bi-arrow-right ms-2"></i>
             </a>
         </div>
-
     @else
-
-        @php $total = 0; @endphp
-
-        <div class="row g-4">
-
-            @foreach($cartItems as $cart)
-                @php 
-                    $ticket = $cart->ticket;
-                    $itemTotal = $ticket->price * $cart->quantity;
-                    $total += $itemTotal;
-                @endphp
-
-                <div class="col-12">
-                    <div class="cart-card shadow-sm p-4 d-flex flex-column flex-md-row align-items-md-center">
-
-                        <div class="flex-grow-1">
-                            <h4 class="fw-bold">{{ $ticket->title }}</h4>
-                            <div class="divider"></div>
-
-                            <p class="mb-1 text-muted"><i class="bi bi-calendar-event"></i> 
-                                {{ \Carbon\Carbon::parse($ticket->game_date)->format('M d, Y H:i') }}
-                            </p>
-
-                            <p class="mb-1 text-muted"><i class="bi bi-geo-alt"></i> {{ $ticket->stadium }}</p>
-                            
-                            @if($ticket->stand && $ticket->row && $ticket->seat_number)
-                                <p class="mb-1 text-muted"><i class="bi bi-door-open"></i> 
-                                    {{ $ticket->stand }} Stand, Row {{ $ticket->row }}, Seat {{ $ticket->seat_number }}
-                                    @if($ticket->category)
-                                        <span class="badge bg-primary ms-2">{{ $ticket->category }}</span>
+        <div class="row">
+            <div class="col-lg-8">
+                @foreach($cartItems as $item)
+                <div class="card mb-4 shadow-sm border-0 rounded-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-start mb-2">
+                                    <span class="badge bg-secondary me-2">Premier League</span>
+                                    @if($item->reserved_until)
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-clock me-1"></i>
+                                        Reserved: {{ $item->reserved_until->diffForHumans(['parts' => 2]) }}
+                                    </span>
                                     @endif
-                                </p>
-                            @else
-                                <p class="mb-1 text-muted"><i class="bi bi-door-open"></i> Seat: {{ $ticket->seat_info }}</p>
-                            @endif
-
-                            <p class="fw-semibold mt-2 text-dark">Price per ticket: ${{ $ticket->price }}</p>
+                                </div>
+                                
+                                <h4 class="fw-bold mb-2">{{ $item->home_team }} vs {{ $item->away_team }}</h4>
+                                
+                                <div class="mb-2">
+                                    <i class="bi bi-calendar-event text-primary me-2"></i>
+                                    <strong>Date:</strong> {{ $item->match_date->format('l, F j, Y - H:i') }}
+                                </div>
+                                
+                                <div class="mb-2">
+                                    <i class="bi bi-geo-alt text-primary me-2"></i>
+                                    <strong>Venue:</strong> {{ $item->stadium }}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <i class="bi bi-ticket-perforated text-primary me-2"></i>
+                                    <strong>Seat:</strong> 
+                                    {{ $item->stand }} Stand, Row {{ $item->row }}, Seat {{ $item->seat_number }}
+                                    <span class="badge bg-info ms-2">{{ $item->category }}</span>
+                                </div>
+                                
+                                <div class="d-flex align-items-center">
+                                    <form action="{{ route('cart.remove', $item->id) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                onclick="return confirm('Remove this seat from cart?')">
+                                            <i class="bi bi-trash me-1"></i> Remove
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 text-md-end">
+                                <div class="mt-3 mt-md-0">
+                                    <div class="text-muted mb-1">Price per seat</div>
+                                    <div class="h3 fw-bold text-primary">${{ number_format($item->price, 2) }}</div>
+                                    
+                                    <div class="mt-3 pt-3 border-top">
+                                        <div class="text-muted">Subtotal</div>
+                                        <div class="h4 fw-bold">
+                                            ${{ number_format($item->price * $item->quantity, 2) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
-                        <div class="d-flex flex-column align-items-center gap-2 mt-3 mt-md-0">
-
-                            <form action="{{ route('cart.update', $cart->id) }}" method="POST" class="d-flex gap-2">
-                                @csrf
-                                <input type="number" name="quantity" value="{{ $cart->quantity }}" min="1"
-                                       class="form-control quantity-box text-center">
-                                <button type="submit" class="btn btn-outline-primary btn-sm px-3">Update</button>
-                            </form>
-
-                            <form action="{{ route('cart.remove', $cart->id) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="btn btn-outline-danger btn-sm px-3"
-                                        onclick="return confirm('Remove this ticket from cart?')">
-                                    Remove
-                                </button>
-                            </form>
-                        </div>
-
-                        <div class="ms-md-4 mt-3 mt-md-0 text-md-end text-center">
-                            <span class="fw-bold price-tag">${{ $itemTotal }}</span>
-                        </div>
-
                     </div>
                 </div>
-
-            @endforeach
-        </div>
-
-        <div class="d-flex justify-content-end mt-5">
-            <div class="summary-card p-4 shadow-sm" style="max-width: 350px;">
-                <h4 class="fw-bold">Order Summary</h4>
-
-                <p class="mt-3 mb-1">Items: <span class="fw-semibold">{{ $cartItems->count() }}</span></p>
-                <p class="fs-4 fw-bold text-dark">Total: ${{ $total }}</p>
-
-                <a href="#" class="btn btn-success w-100 fw-bold py-2 mt-2">
-                    Proceed to Checkout
-                </a>
+                @endforeach
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 rounded-3">
+                    <div class="card-body">
+                        <h4 class="fw-bold mb-4">Order Summary</h4>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Items ({{ $cartItems->count() }})</span>
+                            <span>${{ number_format($total, 2) }}</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Service Fee</span>
+                            <span>${{ number_format($cartItems->count() * 2.50, 2) }}</span>
+                        </div>
+                        
+                        <hr class="my-3">
+                        
+                        <div class="d-flex justify-content-between mb-4">
+                            <span class="fw-bold fs-5">Total</span>
+                            <span class="fw-bold fs-5">
+                                ${{ number_format($total + ($cartItems->count() * 2.50), 2) }}
+                            </span>
+                        </div>
+                        
+                        <button class="btn btn-success btn-lg w-100 py-3 fw-bold" disabled>
+                            <i class="bi bi-lock-fill me-2"></i> Proceed to Checkout
+                        </button>
+                        
+                        <div class="text-center mt-3">
+                            <a href="{{ route('football.schedule') }}" class="text-decoration-none">
+                                <i class="bi bi-arrow-left me-1"></i> Continue Shopping
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
     @endif
 </div>
 
+<style>
+    .card {
+        transition: transform 0.3s;
+    }
+    .card:hover {
+        transform: translateY(-3px);
+    }
+    .badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+    }
+</style>
 @endsection

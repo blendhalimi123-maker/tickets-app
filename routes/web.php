@@ -8,6 +8,8 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Api\FootballController as ApiFootballController;
 use App\Http\Controllers\StadiumController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\GameCartController;
+use App\Http\Controllers\Admin\PriceController;
 use App\Models\User;
 use App\Models\Ticket;
 use App\Http\Controllers\ProfileController;
@@ -24,6 +26,9 @@ Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->na
 Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
 
 Route::middleware([RoleMiddleware::class . ':admin'])->group(function () {
+    Route::get('/admin/tickets/{gameId}', [PriceController::class, 'manage'])->name('admin.tickets.manage');
+    Route::put('/admin/tickets/{gameId}', [PriceController::class, 'update'])->name('admin.tickets.update');
+    
     Route::resource('tickets', TicketController::class)->except(['index', 'show']);
     
     Route::get('/admin', function () {
@@ -69,10 +74,6 @@ Route::get('/team-schedule', function () {
     return view('football.schedule');
 })->name('football.schedule');
 
-
-                          
-
-
 Route::prefix('api/football')->group(function () {
     Route::get('/all', [ApiFootballController::class, 'allCompetitions']);
     Route::get('/champions-league', [ApiFootballController::class, 'championsLeague']);
@@ -90,3 +91,12 @@ Route::get('/password/change', [ProfileController::class, 'editPassword'])
 Route::post('/password/change', [ProfileController::class, 'updatePassword'])
     ->name('password.update')
     ->middleware('auth');
+
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('cart')->group(function () {
+        Route::get('/', [GameCartController::class, 'index'])->name('cart.index');
+        Route::post('/add-seat', [GameCartController::class, 'addSeat'])->name('cart.add-seat');
+        Route::delete('/remove/{id}', [GameCartController::class, 'remove'])->name('cart.remove');
+        Route::post('/cart/add-multiple-seats', [GameCartController::class, 'addMultipleSeats'])->name('cart.add-multiple-seats');
+    });
+});

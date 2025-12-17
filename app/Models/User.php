@@ -10,40 +10,23 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'role', // role column for RBAC
+        'role',
     ];
 
-    /**
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
 
-    // -------------------------
-    // Role helpers
-    // -------------------------
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
@@ -54,25 +37,15 @@ class User extends Authenticatable
         return $this->role === 'user';
     }
 
-    // -------------------------
-    // Cart relationship
-    // -------------------------
-    /**
-     * Get all cart items for the user.
-     */
-    public function cartItems()
+    public function gameCartItems()
     {
-        return $this->hasMany(\App\Models\Cart::class);
+        return $this->hasMany(GameCart::class);
     }
 
-    // -------------------------
-    // Helper to count cart items
-    // -------------------------
-    /**
-     * Get the total number of items in the user's cart
-     */
     public function cartCount(): int
     {
-        return $this->cartItems()->sum('quantity');
+        return $this->gameCartItems()
+            ->where('status', 'in_cart')
+            ->count();
     }
 }
