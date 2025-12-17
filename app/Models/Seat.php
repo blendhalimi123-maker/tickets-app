@@ -10,15 +10,15 @@ class Seat extends Model
     use HasFactory;
 
     protected $fillable = [
-        'fixture_id',
+        'ticket_category_id',
         'match_id',
         'seat_identifier',
-        'seat_info',
         'row',
         'number',
+        'section',
         'stand',
         'category',
         'price',
-        'is_booked'
+        'status'
     ];
 }

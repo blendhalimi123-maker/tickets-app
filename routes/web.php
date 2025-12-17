@@ -70,12 +70,15 @@ Route::get('/team-schedule', function () {
     return view('football.schedule');
 })->name('football.schedule');
 
-Route::middleware([RoleMiddleware::class . ':user'])->group(function () {
+Route::middleware(['auth', RoleMiddleware::class . ':user'])->group(function () {
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart/add/{ticket}', [CartController::class, 'add'])->name('cart.add');
+    Route::post('/cart/add-stadium-seats', [CartController::class, 'addStadiumSeats'])->name('cart.addStadiumSeats');
     Route::post('/cart/remove/{cart}', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/cart/update/{cart}', [CartController::class, 'update'])->name('cart.update');
 });
+                          
+
 
 Route::prefix('api/football')->group(function () {
     Route::get('/all', [ApiFootballController::class, 'allCompetitions']);

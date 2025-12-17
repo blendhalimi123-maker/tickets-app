@@ -4,11 +4,11 @@
 
 <style>
 .dashboard-wrapper {
-    padding: 2rem;
+    padding: 1rem;
 }
 .hero-section {
     text-align: center;
-    margin-bottom: 3rem;
+    margin-bottom: 1.5rem;
 }
 .welcome-text {
     font-size: 2.5rem;
@@ -26,12 +26,12 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
-    margin-bottom: 3rem;
+    margin-bottom: 1.5rem;
 }
 .card-modern {
     background: white;
     border-radius: 16px;
-    padding: 2rem;
+    padding: 1.5rem;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     border: 1px solid #f0f0f0;
@@ -44,7 +44,7 @@
     display: flex;
     align-items: center;
     gap: 1rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 .icon-circle {
     width: 56px;
@@ -106,11 +106,11 @@
     color: #333;
 }
 .dashboard-image {
-    margin-top: 2rem;
+    margin-top: 1rem;
 }
 .dashboard-image img {
     width: 100%;
-    max-height: 280px;
+    height: 500px;
     object-fit: cover;
     border-radius: 12px;
     display: block;

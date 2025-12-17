@@ -87,7 +87,17 @@
                             </p>
 
                             <p class="mb-1 text-muted"><i class="bi bi-geo-alt"></i> {{ $ticket->stadium }}</p>
-                            <p class="mb-1 text-muted"><i class="bi bi-door-open"></i> Seat: {{ $ticket->seat_info }}</p>
+                            
+                            @if($ticket->stand && $ticket->row && $ticket->seat_number)
+                                <p class="mb-1 text-muted"><i class="bi bi-door-open"></i> 
+                                    {{ $ticket->stand }} Stand, Row {{ $ticket->row }}, Seat {{ $ticket->seat_number }}
+                                    @if($ticket->category)
+                                        <span class="badge bg-primary ms-2">{{ $ticket->category }}</span>
+                                    @endif
+                                </p>
+                            @else
+                                <p class="mb-1 text-muted"><i class="bi bi-door-open"></i> Seat: {{ $ticket->seat_info }}</p>
+                            @endif
 
                             <p class="fw-semibold mt-2 text-dark">Price per ticket: ${{ $ticket->price }}</p>
                         </div>
