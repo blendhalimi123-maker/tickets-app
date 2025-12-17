@@ -5,28 +5,44 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .stadium-container {
+        .stadium-wrapper {
             position: relative;
             width: 100%;
-            height: 600px;
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
-            border: 3px solid #333;
-            border-radius: 10px;
-            background: #f8f9fa;
-            overflow: hidden;
+            padding: 20px;
+        }
+        
+        .stadium-layout {
+            display: grid;
+            grid-template-areas:
+                ". north ."
+                "west pitch east"
+                ". south .";
+            grid-template-columns: 1fr 400px 1fr;
+            grid-template-rows: 180px 300px 180px;
+            gap: 20px;
+            margin: 0 auto;
+        }
+        
+        .pitch-area {
+            grid-area: pitch;
+            background: linear-gradient(to bottom, #2a8c2a, #1e7a1e);
+            border: 4px solid white;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .pitch {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 300px;
-            height: 200px;
-            background: #2a8c2a;
-            border: 3px solid white;
-            border-radius: 5px;
+            width: 80%;
+            height: 70%;
+            border: 2px solid white;
+            border-radius: 4px;
+            position: relative;
         }
         
         .center-circle {
@@ -34,8 +50,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 60px;
-            height: 60px;
+            width: 40px;
+            height: 40px;
             border: 2px solid white;
             border-radius: 50%;
         }
@@ -50,96 +66,116 @@
             background: white;
         }
         
-        .stand {
+        .penalty-area {
             position: absolute;
-            background: #e9ecef;
-            border: 2px solid #adb5bd;
+            width: 60px;
+            height: 25px;
+            border: 2px solid white;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .penalty-left {
+            left: 10px;
+        }
+        
+        .penalty-right {
+            right: 10px;
+        }
+        
+        .stand-container {
+            background: #f8f9fa;
+            border: 3px solid #6c757d;
+            border-radius: 10px;
             padding: 15px;
-            text-align: center;
-            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         
         .north-stand {
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 550px;
-            height: 130px;
+            grid-area: north;
+            border-top: 6px solid #dc3545;
         }
         
         .south-stand {
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 550px;
-            height: 130px;
+            grid-area: south;
+            border-bottom: 6px solid #28a745;
         }
         
         .east-stand {
-            top: 170px;
-            right: 20px;
-            width: 130px;
-            height: 260px;
+            grid-area: east;
+            border-right: 6px solid #fd7e14;
         }
         
         .west-stand {
-            top: 170px;
-            left: 20px;
-            width: 130px;
-            height: 260px;
+            grid-area: west;
+            border-left: 6px solid #ffc107;
         }
         
-        .seating-area {
+        .stand-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            color: #495057;
+        }
+        
+        .seating-section {
             display: flex;
             flex-direction: column;
             gap: 4px;
-            margin-top: 10px;
+            width: 100%;
+            max-height: 100%;
+            overflow-y: auto;
             padding: 5px;
         }
         
         .seat-row {
             display: flex;
-            gap: 3px;
+            gap: 2px;
             align-items: center;
             justify-content: center;
         }
         
         .row-label {
-            width: 25px;
-            font-size: 11px;
+            width: 20px;
+            font-size: 10px;
             font-weight: bold;
             color: #495057;
             text-align: center;
         }
         
         .seat {
-            width: 20px;
-            height: 20px;
-            background: #28a745;
-            border: 1px solid #1c7430;
-            border-radius: 3px;
+            width: 18px;
+            height: 18px;
+            background: #6c757d;
+            border: 1px solid #495057;
+            border-radius: 2px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 9px;
+            font-size: 8px;
             color: white;
-            margin: 1px;
+            transition: all 0.2s;
         }
         
         .seat:hover {
-            transform: scale(1.1);
+            transform: scale(1.2);
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
         }
         
         .seat.selected {
             background: #007bff;
             border-color: #0056b3;
+            box-shadow: 0 0 8px rgba(0,123,255,0.5);
         }
         
         .seat.sold {
-            background: #dc3545;
+            background: #adb5bd;
             cursor: not-allowed;
-            opacity: 0.6;
+            opacity: 0.4;
         }
         
         .seat.category1 { background: #dc3545; }
@@ -159,8 +195,12 @@
             display: flex;
             justify-content: center;
             gap: 20px;
-            margin-top: 20px;
+            margin: 30px 0;
             flex-wrap: wrap;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
         }
         
         .legend-item {
@@ -176,36 +216,50 @@
             border: 1px solid #000;
         }
         
-        .seat-info-card {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 300px;
+        .seat-info-panel {
             background: white;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            z-index: 1000;
-            padding: 15px;
-        }
-        
-        @media (max-width: 768px) {
-            .stadium-container {
-                height: 500px;
-            }
-            
-            .seat-info-card {
-                position: static;
-                width: 100%;
-                margin-top: 20px;
-            }
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #dee2e6;
         }
         
         .selected-seat-item {
             background: #f8f9fa;
-            border-radius: 5px;
-            padding: 10px;
+            border-radius: 8px;
+            padding: 12px;
             margin-bottom: 10px;
             border-left: 4px solid #007bff;
+        }
+        
+        @media (max-width: 992px) {
+            .stadium-layout {
+                grid-template-areas:
+                    "north"
+                    "west"
+                    "pitch"
+                    "east"
+                    "south";
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(5, auto);
+                gap: 15px;
+            }
+            
+            .stand-container {
+                min-height: 120px;
+            }
+            
+            .seating-section {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .seat-row {
+                flex-direction: column;
+                gap: 2px;
+            }
         }
     </style>
 </head>
@@ -244,22 +298,22 @@
             </div>
         </div>
 
-        <div class="stadium-legend mb-4">
+        <div class="stadium-legend">
             <div class="legend-item">
                 <div class="seat-sample category1"></div>
-                <span>Category 1 - ${{ $gamePrices['category1'] }}</span>
+                <span>VIP - ${{ $gamePrices['category1'] }}</span>
             </div>
             <div class="legend-item">
                 <div class="seat-sample category2"></div>
-                <span>Category 2 - ${{ $gamePrices['category2'] }}</span>
+                <span>Premium - ${{ $gamePrices['category2'] }}</span>
             </div>
             <div class="legend-item">
                 <div class="seat-sample category3"></div>
-                <span>Category 3 - ${{ $gamePrices['category3'] }}</span>
+                <span>Standard - ${{ $gamePrices['category3'] }}</span>
             </div>
             <div class="legend-item">
                 <div class="seat-sample category4"></div>
-                <span>Category 4 - ${{ $gamePrices['category4'] }}</span>
+                <span>Economy - ${{ $gamePrices['category4'] }}</span>
             </div>
             <div class="legend-item">
                 <div class="seat-sample sold"></div>
@@ -271,38 +325,49 @@
             <div class="card-body">
                 <h4 class="text-center mb-4">Select Your Seats</h4>
                 
-                <div class="stadium-container" id="stadium-container">
-                    <div class="pitch">
-                        <div class="center-circle"></div>
-                        <div class="center-line"></div>
-                    </div>
-                    
-                    <div class="stand north-stand">
-                        <h6>North Stand</h6>
-                        <div class="seating-area" id="north-stand-seats"></div>
-                    </div>
-                    
-                    <div class="stand south-stand">
-                        <h6>South Stand</h6>
-                        <div class="seating-area" id="south-stand-seats"></div>
-                    </div>
-                    
-                    <div class="stand east-stand">
-                        <h6>East Stand</h6>
-                        <div class="seating-area" id="east-stand-seats"></div>
-                    </div>
-                    
-                    <div class="stand west-stand">
-                        <h6>West Stand</h6>
-                        <div class="seating-area" id="west-stand-seats"></div>
+                <div class="stadium-wrapper">
+                    <div class="stadium-layout">
+                        <!-- North Stand -->
+                        <div class="stand-container north-stand">
+                            <div class="stand-title">North Stand</div>
+                            <div class="seating-section" id="north-stand-seats"></div>
+                        </div>
+                        
+                        <!-- West Stand -->
+                        <div class="stand-container west-stand">
+                            <div class="stand-title">West Stand</div>
+                            <div class="seating-section" id="west-stand-seats"></div>
+                        </div>
+                        
+                        <!-- Pitch -->
+                        <div class="pitch-area">
+                            <div class="pitch">
+                                <div class="center-circle"></div>
+                                <div class="center-line"></div>
+                                <div class="penalty-area penalty-left"></div>
+                                <div class="penalty-area penalty-right"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- East Stand -->
+                        <div class="stand-container east-stand">
+                            <div class="stand-title">East Stand</div>
+                            <div class="seating-section" id="east-stand-seats"></div>
+                        </div>
+                        
+                        <!-- South Stand -->
+                        <div class="stand-container south-stand">
+                            <div class="stand-title">South Stand</div>
+                            <div class="seating-section" id="south-stand-seats"></div>
+                        </div>
                     </div>
                 </div>
                 
-                <div id="seat-info-card" class="seat-info-card d-none">
+                <div id="seat-info-card" class="seat-info-panel mt-4 d-none">
                     <h5>Selected Seats</h5>
                     <div id="selected-seats-list"></div>
-                    <div class="mt-3">
-                        <p><strong>Total:</strong> £<span id="total-price">0.00</span></p>
+                    <div class="mt-3 pt-3 border-top">
+                        <p class="fs-5"><strong>Total:</strong> $<span id="total-price">0.00</span></p>
                         <button type="button" class="btn btn-danger w-100" onclick="clearSelection()">
                             Clear All Seats
                         </button>
@@ -326,7 +391,7 @@
                         </button>
                         
                         <button type="submit" class="btn btn-success btn-lg" id="add-to-cart-btn" disabled>
-                            <i class="fas fa-cart-plus"></i> Add <span id="seat-count">0</span> Seat(s) to Cart - £<span id="confirm-price">0.00</span>
+                            <i class="fas fa-cart-plus"></i> Add <span id="seat-count">0</span> Seat(s) to Cart - $<span id="confirm-price">0.00</span>
                         </button>
                     </div>
                 </form>
@@ -479,7 +544,7 @@
                                 <small class="text-muted">${seatElement.dataset.category.replace('category', 'Category ')}</small>
                             </div>
                             <div class="text-end">
-                                <strong>£${parseFloat(seatElement.dataset.price).toFixed(2)}</strong><br>
+                                <strong>$${parseFloat(seatElement.dataset.price).toFixed(2)}</strong><br>
                                 <button type="button" class="btn btn-sm btn-outline-danger mt-1" 
                                         onclick="removeSeat('${seatId}')">Remove</button>
                             </div>
