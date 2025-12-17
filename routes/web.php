@@ -5,7 +5,6 @@ use App\Http\Controllers\TicketController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\CartController;
 use App\Http\Controllers\Api\FootballController as ApiFootballController;
 use App\Http\Controllers\StadiumController;
 use App\Http\Controllers\Admin\UserController;
@@ -70,13 +69,7 @@ Route::get('/team-schedule', function () {
     return view('football.schedule');
 })->name('football.schedule');
 
-Route::middleware(['auth', RoleMiddleware::class . ':user'])->group(function () {
-    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-    Route::post('/cart/add/{ticket}', [CartController::class, 'add'])->name('cart.add');
-    Route::post('/cart/add-stadium-seats', [CartController::class, 'addStadiumSeats'])->name('cart.addStadiumSeats');
-    Route::post('/cart/remove/{cart}', [CartController::class, 'remove'])->name('cart.remove');
-    Route::post('/cart/update/{cart}', [CartController::class, 'update'])->name('cart.update');
-});
+
                           
 
 
