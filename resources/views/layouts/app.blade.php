@@ -325,7 +325,6 @@
             @if(Route::has('tickets.create'))
             <li>
                 <a href="{{ route('tickets.create') }}" class="{{ request()->routeIs('tickets.create') ? 'active' : '' }}">
-                    Create Ticket
                 </a>
             </li>
             @endif

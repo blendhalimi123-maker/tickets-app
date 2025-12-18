@@ -41,8 +41,8 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="badge bg-primary-light text-primary" id="premier-count">230 matches</span>
                             @if(auth()->check() && auth()->user()->isAdmin())
-                            <a href="/admin/tickets" class="btn btn-warning btn-sm">
-                                <i class="fas fa-cog me-1"></i>Manage All Tickets
+                            <!-- <a href="/admin/tickets" class="btn btn-warning btn-sm">
+                                <i class="fas fa-cog me-1"></i>Manage All Tickets -->
                             </a>
                             @endif
                         </div>
@@ -58,15 +58,15 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h4 class="fw-bold mb-0">Premier League Matches</h4>
-                        <p class="text-muted mb-0 small" id="active-competition-subtitle">230 matches total</p>
+                        <!-- <p class="text-muted mb-0 small" id="active-competition-subtitle">230 matches total</p> -->
                     </div>
                     <div class="d-flex gap-2">
                         <button class="btn btn-danger btn-sm" onclick="clearFilters()">
                             <i class="fas fa-times me-1"></i>Clear Filter
                         </button>
                         @if(auth()->check() && auth()->user()->isAdmin())
-                        <a href="/admin/tickets" class="btn btn-warning btn-sm">
-                            <i class="fas fa-cog me-1"></i>Manage Tickets
+                        <!-- <a href="/admin/tickets" class="btn btn-warning btn-sm"> -->
+                            <!-- <i class="fas fa-cog me-1"></i>Manage Tickets -->
                         </a>
                         @endif
                     </div>
