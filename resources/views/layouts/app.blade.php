@@ -308,13 +308,11 @@
             </li>
             @endif
             
-            @if(Route::has('users.index'))
             <li>
-                <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.index') ? 'active' : '' }}">
-                    Manage Users
+                <a href="{{ url('/admin/users') }}" class="{{ request()->is('admin/users*') ? 'active' : '' }}">
+                    Users
                 </a>
             </li>
-            @endif
             
             @if(Route::has('password.change'))
             <li>

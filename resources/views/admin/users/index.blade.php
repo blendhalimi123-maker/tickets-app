@@ -4,7 +4,7 @@
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3 mb-0">Manage Users</h1>
-            <a href="{{ route('users.create') }}" class="btn btn-primary">
+            <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
                 Add New User
             </a>
         </div>
@@ -20,7 +20,7 @@
             <div class="card-body">
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <form method="GET" action="{{ route('users.index') }}">
+                        <form method="GET" action="{{ route('admin.users') }}">
                             <div class="input-group">
                                 <input type="text" class="form-control" name="search"
                                     placeholder="Search by name or email..." value="{{ request('search') }}">
@@ -28,7 +28,7 @@
                                     Search
                                 </button>
                                 @if(request('search'))
-                                    <a href="{{ route('users.index') }}" class="btn btn-outline-danger">
+                                    <a href="{{ route('admin.users') }}" class="btn btn-outline-danger">
                                         Clear
                                     </a>
                                 @endif
@@ -65,10 +65,11 @@
                                     <td>{{ $user->created_at->format('Y-m-d') }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="{{ route('users.show', $user) }}" class="btn btn-sm btn-info">
+                                            
+                                            <a href="{{ route('admin.users.show', $user) }}" class="btn btn-sm btn-info">
                                                 View
                                             </a>
-                                            <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-warning">
+                                            <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-warning">
                                                 Edit
                                             </a>
                                             <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal"
@@ -107,7 +108,8 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <form action="{{ route('users.destroy', $user) }}" method="POST">
+                        {{-- Fixed: Added admin. prefix --}}
+                        <form action="{{ route('admin.users.destroy', $user) }}" method="POST">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-danger">Delete</button>

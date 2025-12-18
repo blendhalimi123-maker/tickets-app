@@ -9,7 +9,7 @@
                     <h5 class="mb-0">Edit User: {{ $user->name }}</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('users.update', $user) }}" id="userForm">
+                    <form method="POST" action="{{ route('admin.users.update', $user) }}" id="userForm">
                         @csrf
                         @method('PUT')
 
@@ -67,7 +67,7 @@
                         </div>
 
                         <div class="d-flex justify-content-between">
-                            <a href="{{ route('users.index') }}" class="btn btn-secondary">Cancel</a>
+                            <a href="{{ route('admin.users') }}" class="btn btn-secondary">Cancel</a>
                             <button type="submit" class="btn btn-primary" id="updateBtn">Update User</button>
                         </div>
                     </form>
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const roleSwitch = document.getElementById('roleSwitch');
     const roleText = document.getElementById('roleText');
     const updateBtn = document.getElementById('updateBtn');
-    const originalRole = "{{ $user->role }}"; // 'admin' or 'user'
+    const originalRole = "{{ $user->role }}";
     
     roleSwitch.addEventListener('change', function() {
         roleText.textContent = this.checked ? 'Admin' : 'User';

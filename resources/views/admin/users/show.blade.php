@@ -8,10 +8,10 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">User Details</h5>
                         <div class="btn-group">
-                            <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-warning">
+                            <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-warning">
                                 Edit
                             </a>
-                            <a href="{{ route('users.index') }}" class="btn btn-sm btn-secondary">
+                            <a href="{{ route('admin.users') }}" class="btn btn-sm btn-secondary">
                                 Back
                             </a>
                         </div>
@@ -35,9 +35,7 @@
                                         <td>{{ $user->id }}</td>
                                     </tr>
                                     <tr>
-                                        <!-- <th>Email Address</th>
-                                        <td>{{ $user->email }}</td> -->
-                                    </tr>
+                                        </tr>
                                     <tr>
                                         <th>Account Created</th>
                                         <td>{{ $user->created_at->format('F d, Y h:i A') }}</td>
@@ -50,12 +48,7 @@
                             </div>
                         </div>
 
-                        <!-- <div class="mt-4">
-                            <div class="btn-group">
-                                <a href="mailto:{{ $user->email }}" class="btn btn-outline-primary">
-                                    Send Email
-                                </a> -->
-                                <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                                     Delete User
                                 </button>
                             </div>
@@ -78,7 +71,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form action="{{ route('users.destroy', $user) }}" method="POST">
+                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger">Delete</button>

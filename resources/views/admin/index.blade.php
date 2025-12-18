@@ -1,26 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<<<<<<< HEAD
-<div class="container py-5">
-
-    <div class="text-center mb-5">
-        <h1 class="fw-bold">Welcome Admin, {{ auth()->user()->name }}</h1>
-        <p class="text-muted">Manage tickets and view all system activity here.</p>
-    </div>
-
-    <div class="row g-4 mb-5">
-        {{-- ////////////////////////////// --}}
-        {{--
-        <div class="col-md-6">
-            <a href="{{ route('tickets.index') }}" class="card shadow-sm border-0 text-center text-decoration-none p-4 h-100">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold">Manage Tickets</h5>
-                    <p class="card-text text-muted">Create, edit, and delete tickets.</p>
-=======
 <div class="container-fluid">
     <div class="row">
-        
         <div class="col-md-3 col-lg-2 px-0">
             <div class="bg-dark text-white vh-100 position-fixed" style="width: 250px;">
                 <div class="p-3 border-bottom">
@@ -28,7 +10,6 @@
                         <i class="fas fa-user-shield me-2"></i>Admin Panel
                     </h5>
                     <p class="small text-light mt-1 mb-0">Welcome, {{ auth()->user()->name }}</p>
->>>>>>> e6680a0cba488afe038c406a86dcd800e3ed15d8
                 </div>
                 
                 <ul class="nav flex-column p-3">
@@ -64,24 +45,9 @@
                 </div>
             </div>
         </div>
-<<<<<<< HEAD
-        --}}
-    </div>
-
-    <div class="text-center mt-4">
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="btn btn-danger btn-lg">
-                Logout
-            </button>
-        </form>
-    </div>
-
-=======
         
         <div class="col-md-9 col-lg-10 ms-auto">
             <div class="p-4">
-                
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h3 class="fw-bold mb-0">
                         <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
@@ -122,25 +88,17 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>ss
+                            </div>
                         </div>
                     </div>
                 </div>
-                
             </div>
         </div>
-        
     </div>
->>>>>>> e6680a0cba488afe038c406a86dcd800e3ed15d8
 </div>
 
 <style>
-.position-fixed {
-    position: fixed;
-}
-.vh-100 {
-    height: 100vh;
-}
+.position-fixed { position: fixed; }
+.vh-100 { height: 100vh; }
 </style>
-
 @endsection
