@@ -10,6 +10,7 @@ use App\Http\Controllers\StadiumController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\GameCartController;
 use App\Http\Controllers\Admin\PriceController;
+use App\Http\Controllers\CheckoutController;
 use App\Models\User;
 use App\Models\Ticket;
 use App\Http\Controllers\ProfileController;
@@ -97,6 +98,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [GameCartController::class, 'index'])->name('cart.index');
         Route::post('/add-seat', [GameCartController::class, 'addSeat'])->name('cart.add-seat');
         Route::delete('/remove/{id}', [GameCartController::class, 'remove'])->name('cart.remove');
-        Route::post('/cart/add-multiple-seats', [GameCartController::class, 'addMultipleSeats'])->name('cart.add-multiple-seats');
+        Route::post('/add-multiple-seats', [GameCartController::class, 'addMultipleSeats'])->name('cart.add-multiple-seats');
     });
+
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
+    Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
+    
+    Route::get('/my-tickets', [GameCartController::class, 'myTickets'])->name('my-tickets');
 });

@@ -161,4 +161,29 @@ class GameCartController extends Controller
 
         return back()->with('success', 'Item removed from cart.');
     }
+
+public function myTickets()
+{
+    $tickets = GameCart::where('user_id', auth()->id())
+        ->where('status', 'paid')
+        ->orderBy('match_date', 'desc')
+        ->get()
+        ->groupBy('api_game_id'); 
+
+    return view('tickets.index', compact('tickets'));
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

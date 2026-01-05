@@ -38,7 +38,7 @@
                                     @if($item->reserved_until)
                                     <span class="badge bg-warning text-dark">
                                         <i class="bi bi-clock me-1"></i>
-                                        Reserved: {{ $item->reserved_until->diffForHumans(['parts' => 2]) }}
+                                        Reserved: {{ \Carbon\Carbon::parse($item->reserved_until)->diffForHumans(['parts' => 2]) }}
                                     </span>
                                     @endif
                                 </div>
@@ -47,7 +47,7 @@
                                 
                                 <div class="mb-2">
                                     <i class="bi bi-calendar-event text-primary me-2"></i>
-                                    <strong>Date:</strong> {{ $item->match_date->format('l, F j, Y - H:i') }}
+                                    <strong>Date:</strong> {{ \Carbon\Carbon::parse($item->match_date)->format('l, F j, Y - H:i') }}
                                 </div>
                                 
                                 <div class="mb-2">
@@ -94,7 +94,7 @@
             </div>
             
             <div class="col-lg-4">
-                <div class="card shadow-sm border-0 rounded-3">
+                <div class="card shadow-sm border-0 rounded-3 sticky-top" style="top: 20px;">
                     <div class="card-body">
                         <h4 class="fw-bold mb-4">Order Summary</h4>
                         
@@ -112,17 +112,17 @@
                         
                         <div class="d-flex justify-content-between mb-4">
                             <span class="fw-bold fs-5">Total</span>
-                            <span class="fw-bold fs-5">
+                            <span class="fw-bold fs-5 text-success">
                                 ${{ number_format($total + ($cartItems->count() * 2.50), 2) }}
                             </span>
                         </div>
                         
-                        <button class="btn btn-success btn-lg w-100 py-3 fw-bold" disabled>
+                        <a href="{{ route('checkout.index') }}" class="btn btn-success btn-lg w-100 py-3 fw-bold shadow-sm">
                             <i class="bi bi-lock-fill me-2"></i> Proceed to Checkout
-                        </button>
+                        </a>
                         
                         <div class="text-center mt-3">
-                            <a href="{{ route('football.schedule') }}" class="text-decoration-none">
+                            <a href="{{ route('football.schedule') }}" class="text-decoration-none small">
                                 <i class="bi bi-arrow-left me-1"></i> Continue Shopping
                             </a>
                         </div>
@@ -143,6 +143,9 @@
     .badge {
         padding: 6px 12px;
         border-radius: 20px;
+    }
+    .sticky-top {
+        z-index: 10;
     }
 </style>
 @endsection

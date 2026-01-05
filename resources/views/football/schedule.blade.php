@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container-lg custom-container">
-    <div class="premier-league-hero py-4 rounded-top-4">
+    <div class="premier-league-hero py-4 rounded-top-4" id="competition-hero">
         <div class="container-lg">
             <div class="row align-items-center">
                 <div class="col-12">
@@ -210,6 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchCompetitionData();
     setInterval(refreshData, 30000);
     initializeDatepicker();
+    updateCompetitionBackground(); 
 });
 
 async function fetchCompetitionData() {
@@ -231,6 +232,7 @@ async function fetchCompetitionData() {
             
             updateCompetitionCards();
             updateCompetitionTitle();
+            updateCompetitionBackground();
             applyFilters(false); 
             hideLoading();
         } else {
@@ -258,7 +260,7 @@ function updateCompetitionTitle() {
     const titleMap = {
         'premier-league': 'Premier League Schedule',
         'champions-league': 'Champions League Schedule',
-        'world-cup': 'World Cup Matches'
+        'world-cup': 'World Cup Schedule'
     };
     
     const subtitleMap = {
@@ -267,16 +269,24 @@ function updateCompetitionTitle() {
         'world-cup': 'International tournament matches'
     };
     
-    const heroBgMap = {
-        'premier-league': 'linear-gradient(135deg, #38003c 0%, #00ff85 100%)',
-        'champions-league': 'linear-gradient(135deg, #0047AB 0%, #D4AF37 100%)',
-        'world-cup': 'linear-gradient(135deg, #0066B3 0%, #FFD700 100%)'
-    };
-    
     document.getElementById('competition-title').innerHTML = `<i class="fas fa-futbol me-2"></i>${titleMap[currentCompetition]}`;
     document.getElementById('competition-subtitle').textContent = subtitleMap[currentCompetition];
     document.getElementById('matches-title').textContent = `${titleMap[currentCompetition].replace(' Schedule', '').replace(' Matches', '')} Matches`;
-    document.querySelector('.premier-league-hero').style.background = heroBgMap[currentCompetition];
+}
+
+function updateCompetitionBackground() {
+    const hero = document.getElementById('competition-hero');
+    
+    const backgroundImages = {
+        'premier-league': "url('/images/PremierLeague.jpg')",
+        'champions-league': "url('/images/ChampionsLeague.jpg')",
+        'world-cup': "url('/images/WorldCup.jpg')"
+    };
+    
+    hero.style.backgroundImage = backgroundImages[currentCompetition];
+    hero.style.backgroundSize = 'cover';
+    hero.style.backgroundPosition = 'center';
+    hero.style.backgroundRepeat = 'no-repeat';
 }
 
 function updateCompetitionCards() {
@@ -496,7 +506,9 @@ function manageTickets(id) {
 
 <style>
 .custom-container { max-width: 1400px; margin: 0 auto; }
-.premier-league-hero { background: linear-gradient(135deg, #38003c 0%, #00ff85 100%); }
+.premier-league-hero { 
+    background: linear-gradient(135deg, #38003c 0%, #00ff85 100%); 
+}
 .competition-icon { width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; }
 .team-crest { width: 40px; height: 40px; object-fit: contain; }
 .pagination .page-link { color: #38003c; cursor: pointer; }
