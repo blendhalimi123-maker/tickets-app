@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\GameCart;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class GameCartController extends Controller
 {
@@ -162,28 +163,28 @@ class GameCartController extends Controller
         return back()->with('success', 'Item removed from cart.');
     }
 
-public function myTickets()
-{
-    $tickets = GameCart::where('user_id', auth()->id())
-        ->where('status', 'paid')
-        ->orderBy('match_date', 'desc')
-        ->get()
-        ->groupBy('api_game_id'); 
+    public function myTickets()
+    {
+        $tickets = GameCart::where('user_id', auth()->id())
+            ->where('status', 'paid')
+            ->orderBy('match_date', 'desc')
+            ->get()
+            ->groupBy('api_game_id'); 
 
-    return view('tickets.index', compact('tickets'));
-}
+        return view('tickets.index', compact('tickets'));
+    }
 
+    public function showMyTicket($id)
+    {
+        $tickets = GameCart::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->where('status', 'paid')
+            ->get();
 
+        if ($tickets->isEmpty()) {
+            return redirect()->route('football.schedule')->with('error', 'Ticket not found.');
+        }
 
-
-
-
-
-
-
-
-
-
-
-
+        return view('tickets.smyticket', compact('tickets'));
+    }
 }

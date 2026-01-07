@@ -21,7 +21,7 @@
                     
                     <div class="p-4 text-center">
                         <div class="mb-3"><strong>Seat:</strong> {{ $ticket->seat_info }}</div>
-                        <div class="mb-3"><strong>Price:</strong> ${{ $ticket->price }}</div>
+                        <div class="mb-3"><strong>Price:</strong> £{{ $ticket->price }}</div>
                         <div class="mb-3">
                             <strong>Status:</strong>
                             <span class="badge {{ $ticket->is_available ? 'bg-success' : 'bg-danger' }}">

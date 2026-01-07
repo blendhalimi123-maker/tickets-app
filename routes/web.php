@@ -103,7 +103,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
-    Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
     
+    Route::get('/checkout/success/{id}', [CheckoutController::class, 'success'])->name('checkout.success');
+    
+    Route::get('/my-tickets/{id}/view', [GameCartController::class, 'showMyTicket'])->name('tickets.my');
+
     Route::get('/my-tickets', [GameCartController::class, 'myTickets'])->name('my-tickets');
 });

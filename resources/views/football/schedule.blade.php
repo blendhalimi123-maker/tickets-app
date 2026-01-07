@@ -440,7 +440,7 @@ function clearFilters() {
     document.getElementById('date-filter-display').classList.add('d-none');
     applyFilters(true);
 }
-
+/////////////////////////////
 function initializeDatepicker() {
     $('#date-filter').datepicker({
         dateFormat: 'yy-mm-dd',

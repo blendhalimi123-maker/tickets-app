@@ -11,7 +11,7 @@
                         @csrf
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Name on Card</label>
-                            <input type="text" name="card_name" class="form-control" placeholder="John Doe" required>
+                            <input type="text" name="card_name" class="form-control" placeholder="Blendi Halimi" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Card Number</label>
@@ -19,6 +19,7 @@
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
+
                                 <label class="form-label fw-semibold">Expiry Date</label>
                                 <input type="text" name="expiry" class="form-control" placeholder="MM/YY" required>
                             </div>

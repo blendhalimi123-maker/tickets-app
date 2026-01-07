@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\Auth;
 
 class CheckoutController extends Controller
 {
-    
-     
     public function index()
     {
         $cartItems = GameCart::where('user_id', Auth::id())
@@ -30,8 +28,6 @@ class CheckoutController extends Controller
         return view('checkout.index', compact('cartItems', 'subtotal', 'serviceFee', 'total'));
     }
 
-    
-     
     public function process(Request $request)
     {
         $request->validate([
@@ -41,9 +37,16 @@ class CheckoutController extends Controller
             'cvv'         => 'required|digits:3',
         ]);
 
-       
-        
-        
+        $cartItem = GameCart::where('user_id', Auth::id())
+            ->where('status', 'in_cart')
+            ->first();
+
+        if (!$cartItem) {
+            return redirect()->route('football.schedule');
+        }
+
+        $purchasedId = $cartItem->id;
+
         GameCart::where('user_id', Auth::id())
             ->where('status', 'in_cart')
             ->update([
@@ -52,13 +55,11 @@ class CheckoutController extends Controller
                 'updated_at' => now()
             ]);
 
-        
-        return redirect()->route('checkout.success');
+        return redirect()->route('checkout.success', ['id' => $purchasedId]);
     }
 
-  
-    public function success()
+    public function success($id)
     {
-        return view('checkout.success');
+        return view('checkout.success', compact('id'));
     }
 }
