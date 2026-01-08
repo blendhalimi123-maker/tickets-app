@@ -17,7 +17,7 @@ class GameCartController extends Controller
 
         $cartItems = GameCart::where('user_id', auth()->id())
             ->where('status', 'in_cart')
-            ->orderBy('match_date')
+            ->orderBy('match_date', 'desc')
             ->get();
 
         $total = $cartItems->sum(function ($item) {
@@ -136,7 +136,7 @@ class GameCartController extends Controller
                     'match_date' => $request->match_date,
                     'stadium' => $request->stadium,
                     'stand' => $seat['stand'],
-                    'row' => is_numeric($seat['row']) ? $seat['row'] : $seat['row'],
+                    'row' => $seat['row'],
                     'seat_number' => $seat['number'],
                     'category' => $seat['category'],
                     'price' => $seat['price'],
@@ -165,26 +165,29 @@ class GameCartController extends Controller
 
     public function myTickets()
     {
-        $tickets = GameCart::where('user_id', auth()->id())
+        $tickets = GameCart::where('user_id', Auth::id())
             ->where('status', 'paid')
             ->orderBy('match_date', 'desc')
             ->get()
-            ->groupBy('api_game_id'); 
+            ->groupBy('api_game_id');
 
-        return view('tickets.index', compact('tickets'));
+        return view('tickets.mytickets', compact('tickets'));
     }
 
     public function showMyTicket($id)
     {
-        $tickets = GameCart::where('id', $id)
+        $reference = GameCart::where('id', $id)
             ->where('user_id', Auth::id())
             ->where('status', 'paid')
-            ->get();
+            ->firstOrFail();
 
-        if ($tickets->isEmpty()) {
-            return redirect()->route('football.schedule')->with('error', 'Ticket not found.');
-        }
+     
+        $tickets = GameCart::where('api_game_id', $reference->api_game_id)
+            ->where('user_id', Auth::id())
+            ->where('status', 'paid')
+            ->get()
+            ->groupBy('api_game_id'); 
 
-        return view('tickets.smyticket', compact('tickets'));
+        return view('tickets.myticket', compact('tickets'));
     }
 }
