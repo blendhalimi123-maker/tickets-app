@@ -11,9 +11,13 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\GameCartController;
 use App\Http\Controllers\Admin\PriceController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ProfileController;
 use App\Models\User;
 use App\Models\Ticket;
-use App\Http\Controllers\ProfileController;
+
+// Import the Mailable classes
+use App\Mail\AdminNewSaleMail;
+use App\Mail\CustomerMail;
 
 Route::get('/', function () {
     return redirect()->route('user.dashboard');
@@ -109,4 +113,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/my-tickets/{id}/view', [GameCartController::class, 'showMyTicket'])->name('tickets.my');
 
     Route::get('/my-tickets', [GameCartController::class, 'myTickets'])->name('my-tickets');
+});
+
+
+Route::get('/preview-user-mail', function () {
+    $user = User::first() ?? User::factory()->make();
+    $tickets = Ticket::limit(3)->get();
+    return new CustomerMail($tickets, $user);
+});
+
+Route::get('/preview-admin-mail', function () {
+    $user = User::first() ?? User::factory()->make();
+    $tickets = Ticket::limit(3)->get();
+    return new AdminNewSaleMail($tickets, $user);
 });

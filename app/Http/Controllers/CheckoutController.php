@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\GameCart;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail; 
+use App\Mail\UserTicketMail; 
+use App\Mail\AdminNewSaleMail;
 
 class CheckoutController extends Controller
 {
@@ -37,23 +40,31 @@ class CheckoutController extends Controller
             'cvv'         => 'required|digits:3',
         ]);
 
-        $cartItem = GameCart::where('user_id', Auth::id())
+        $user = Auth::user();
+        $cartItems = GameCart::where('user_id', $user->id)
             ->where('status', 'in_cart')
-            ->first();
+            ->get();
 
-        if (!$cartItem) {
+        if ($cartItems->isEmpty()) {
             return redirect()->route('football.schedule');
         }
 
-        $purchasedId = $cartItem->id;
+        $purchasedId = $cartItems->first()->id;
 
-        GameCart::where('user_id', Auth::id())
+        GameCart::where('user_id', $user->id)
             ->where('status', 'in_cart')
             ->update([
                 'status' => 'paid',
                 'reserved_until' => null,
                 'updated_at' => now()
             ]);
+
+        try {
+            Mail::to($user->email)->send(new UserTicketMail($cartItems, $user));        
+            Mail::to('blendhalimi123@gmail.com')->send(new AdminNewSaleMail($cartItems, $user));
+        } catch (\Exception $e) {
+            \Log::error("Mail failed: " . $e->getMessage());
+        }
 
         return redirect()->route('checkout.success', ['id' => $purchasedId]);
     }

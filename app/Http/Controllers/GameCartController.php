@@ -75,7 +75,16 @@ class GameCartController extends Controller
 
         $cartItem = GameCart::create([
             'user_id' => auth()->id(),
-            ...$validated,
+            'api_game_id' => $validated['api_game_id'],
+            'home_team' => $validated['home_team'],
+            'away_team' => $validated['away_team'],
+            'match_date' => $validated['match_date'],
+            'stadium' => $validated['stadium'],
+            'stand' => $validated['stand'],
+            'row' => $validated['row'],
+            'seat_number' => $validated['seat_number'],
+            'category' => $validated['category'],
+            'price' => $validated['price'],
             'quantity' => 1,
             'status' => 'in_cart',
             'reserved_until' => $reservedUntil,
@@ -119,11 +128,18 @@ class GameCartController extends Controller
         }
 
         foreach ($seatsData as $seat) {
+            $stand  = $seat['stand'] ?? 'Unknown Stand';
+            $row    = $seat['row'] ?? 'N/A';
+            $number = $seat['number'] ?? ($seat['seat_number'] ?? 0);
+            $cat    = $seat['category'] ?? 'General';
+            $price  = $seat['price'] ?? 0;
+
+            // Safety Check: Check if seat is already in cart before creating
             $existing = GameCart::where('user_id', auth()->id())
                 ->where('api_game_id', $request->api_game_id)
-                ->where('stand', $seat['stand'])
-                ->where('row', $seat['row'])
-                ->where('seat_number', $seat['number'])
+                ->where('stand', $stand)
+                ->where('row', $row)
+                ->where('seat_number', $number)
                 ->where('status', 'in_cart')
                 ->exists();
 
@@ -135,11 +151,11 @@ class GameCartController extends Controller
                     'away_team' => $request->away_team,
                     'match_date' => $request->match_date,
                     'stadium' => $request->stadium,
-                    'stand' => $seat['stand'],
-                    'row' => $seat['row'],
-                    'seat_number' => $seat['number'],
-                    'category' => $seat['category'],
-                    'price' => $seat['price'],
+                    'stand' => $stand,
+                    'row' => $row,
+                    'seat_number' => $number,
+                    'category' => $cat,
+                    'price' => $price,
                     'quantity' => 1,
                     'status' => 'in_cart',
                     'reserved_until' => Carbon::now()->addMinutes(15),
@@ -181,7 +197,6 @@ class GameCartController extends Controller
             ->where('status', 'paid')
             ->firstOrFail();
 
-     
         $tickets = GameCart::where('api_game_id', $reference->api_game_id)
             ->where('user_id', Auth::id())
             ->where('status', 'paid')
