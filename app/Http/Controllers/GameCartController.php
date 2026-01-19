@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\GameCart;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class GameCartController extends Controller
 {
@@ -27,6 +28,9 @@ class GameCartController extends Controller
         return view('cart.index', compact('cartItems', 'total'));
     }
 
+    /**
+     * Add a single seat (AJAX)
+     */
     public function addSeat(Request $request)
     {
         if (!auth()->check()) {
@@ -52,51 +56,44 @@ class GameCartController extends Controller
             ->count();
 
         if ($gameSeatsCount >= 5) {
-            return response()->json([
-                'error' => 'Maximum 5 seats per match.'
-            ], 422);
+            return response()->json(['error' => 'Maximum 5 seats per match.'], 422);
         }
 
-        $existing = GameCart::where('user_id', auth()->id())
-            ->where('api_game_id', $validated['api_game_id'])
-            ->where('stand', $validated['stand'])
-            ->where('row', $validated['row'])
-            ->where('seat_number', $validated['seat_number'])
-            ->where('status', 'in_cart')
-            ->exists();
+        try {
+            GameCart::updateOrCreate(
+                [
+                    'user_id'     => auth()->id(),
+                    'api_game_id' => $validated['api_game_id'],
+                    'stand'       => $validated['stand'],
+                    'row'         => $validated['row'],
+                    'seat_number' => $validated['seat_number'],
+                    'status'      => 'in_cart',
+                ],
+                [
+                    'home_team'      => $validated['home_team'],
+                    'away_team'      => $validated['away_team'],
+                    'match_date'     => $validated['match_date'],
+                    'stadium'        => $validated['stadium'],
+                    'category'       => $validated['category'],
+                    'price'          => $validated['price'],
+                    'quantity'       => 1,
+                    'reserved_until' => Carbon::now()->addMinutes(15),
+                ]
+            );
 
-        if ($existing) {
             return response()->json([
-                'error' => 'This seat is already in your cart.'
-            ], 422);
+                'success' => true,
+                'message' => 'Seat added to cart!',
+                'cart_count' => GameCart::where('user_id', auth()->id())->where('status', 'in_cart')->count(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'This seat is already being processed.'], 422);
         }
-
-        $reservedUntil = Carbon::now()->addMinutes(15);
-
-        $cartItem = GameCart::create([
-            'user_id' => auth()->id(),
-            'api_game_id' => $validated['api_game_id'],
-            'home_team' => $validated['home_team'],
-            'away_team' => $validated['away_team'],
-            'match_date' => $validated['match_date'],
-            'stadium' => $validated['stadium'],
-            'stand' => $validated['stand'],
-            'row' => $validated['row'],
-            'seat_number' => $validated['seat_number'],
-            'category' => $validated['category'],
-            'price' => $validated['price'],
-            'quantity' => 1,
-            'status' => 'in_cart',
-            'reserved_until' => $reservedUntil,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Seat added to cart!',
-            'cart_count' => GameCart::where('user_id', auth()->id())->where('status', 'in_cart')->count(),
-        ]);
     }
 
+    /**
+     * Add multiple seats (Form Submit)
+     */
     public function addMultipleSeats(Request $request)
     {
         if (!auth()->check()) {
@@ -127,43 +124,45 @@ class GameCartController extends Controller
             return back()->with('error', 'Maximum 5 seats per match.');
         }
 
+        $processedCount = 0;
+
         foreach ($seatsData as $seat) {
-            $stand  = $seat['stand'] ?? 'Unknown Stand';
-            $row    = $seat['row'] ?? 'N/A';
-            $number = $seat['number'] ?? ($seat['seat_number'] ?? 0);
-            $cat    = $seat['category'] ?? 'General';
-            $price  = $seat['price'] ?? 0;
+            // Provide fallback values if JS data is missing
+            $stand  = !empty($seat['stand']) ? $seat['stand'] : 'General Admission';
+            $row    = !empty($seat['row']) ? $seat['row'] : 'Standard';
+            $number = $seat['number'] ?? ($seat['seat_number'] ?? rand(1000, 9999));
 
-            // Safety Check: Check if seat is already in cart before creating
-            $existing = GameCart::where('user_id', auth()->id())
-                ->where('api_game_id', $request->api_game_id)
-                ->where('stand', $stand)
-                ->where('row', $row)
-                ->where('seat_number', $number)
-                ->where('status', 'in_cart')
-                ->exists();
-
-            if (!$existing) {
-                GameCart::create([
-                    'user_id' => auth()->id(),
-                    'api_game_id' => $request->api_game_id,
-                    'home_team' => $request->home_team,
-                    'away_team' => $request->away_team,
-                    'match_date' => $request->match_date,
-                    'stadium' => $request->stadium,
-                    'stand' => $stand,
-                    'row' => $row,
-                    'seat_number' => $number,
-                    'category' => $cat,
-                    'price' => $price,
-                    'quantity' => 1,
-                    'status' => 'in_cart',
-                    'reserved_until' => Carbon::now()->addMinutes(15),
-                ]);
+            try {
+                // updateOrCreate inside Try-Catch ensures the loop never crashes the whole site
+                GameCart::updateOrCreate(
+                    [
+                        'user_id'     => auth()->id(),
+                        'api_game_id' => $request->api_game_id,
+                        'stand'       => $stand,
+                        'row'         => $row,
+                        'seat_number' => $number,
+                        'status'      => 'in_cart',
+                    ],
+                    [
+                        'home_team'      => $request->home_team,
+                        'away_team'      => $request->away_team,
+                        'match_date'     => $request->match_date,
+                        'stadium'        => $request->stadium,
+                        'category'       => $seat['category'] ?? 'General',
+                        'price'          => $seat['price'] ?? 0,
+                        'quantity'       => 1,
+                        'reserved_until' => Carbon::now()->addMinutes(15),
+                    ]
+                );
+                $processedCount++;
+            } catch (\Exception $e) {
+                // Log the error but keep the loop running for other seats
+                Log::warning("Duplicate seat skipped: User " . auth()->id() . " Game " . $request->api_game_id);
+                continue;
             }
         }
 
-        return redirect()->route('cart.index')->with('success', count($seatsData) . ' seat(s) added to cart!');
+        return redirect()->route('cart.index')->with('success', $processedCount . ' seat(s) updated in your cart!');
     }
 
     public function remove($id)

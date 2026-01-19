@@ -11,6 +11,9 @@ class TicketController extends Controller
      
     public function index()
     {
+        $maxTickets = config('tickets.max_tickets_per_user');
+
+
         $tickets = Ticket::all();
         return view("tickets.index", compact('tickets'));
     }

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\TicketController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Controllers\Auth\LoginController;
@@ -14,10 +15,8 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProfileController;
 use App\Models\User;
 use App\Models\Ticket;
-
-// Import the Mailable classes
 use App\Mail\AdminNewSaleMail;
-use App\Mail\CustomerMail;
+use App\Mail\UserTicketMail;
 
 Route::get('/', function () {
     return redirect()->route('user.dashboard');
@@ -107,23 +106,30 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
-    
-    Route::get('/checkout/success/{id}', [CheckoutController::class, 'success'])->name('checkout.success');
-    
-    Route::get('/my-tickets/{id}/view', [GameCartController::class, 'showMyTicket'])->name('tickets.my');
 
+    Route::get('/checkout/success/{id}', function($id) {
+        $user = auth()->user();
+        $tickets = Ticket::where('user_id', $user->id)->get();
+
+        Mail::to($user->email)->send(new UserTicketMail($tickets, $user));
+        
+        Mail::to('admin@tickets-app.com')->send(new AdminNewSaleMail($tickets, $user));
+
+        return view('checkout.success', compact('tickets', 'id'));
+    })->name('checkout.success');
+
+    Route::get('/my-tickets/{id}/view', [GameCartController::class, 'showMyTicket'])->name('tickets.my');
     Route::get('/my-tickets', [GameCartController::class, 'myTickets'])->name('my-tickets');
 });
 
-
 Route::get('/preview-user-mail', function () {
-    $user = User::first() ?? User::factory()->make();
+    $user = auth()->user() ?? User::first() ?? User::factory()->make();
     $tickets = Ticket::limit(3)->get();
-    return new CustomerMail($tickets, $user);
+    return new UserTicketMail($tickets, $user);
 });
 
 Route::get('/preview-admin-mail', function () {
-    $user = User::first() ?? User::factory()->make();
+    $user = auth()->user() ?? User::first() ?? User::factory()->make();
     $tickets = Ticket::limit(3)->get();
     return new AdminNewSaleMail($tickets, $user);
 });
