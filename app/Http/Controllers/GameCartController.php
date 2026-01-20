@@ -127,10 +127,15 @@ class GameCartController extends Controller
         $processedCount = 0;
 
         foreach ($seatsData as $seat) {
-            // Provide fallback values if JS data is missing
-            $stand  = !empty($seat['stand']) ? $seat['stand'] : 'General Admission';
-            $row    = !empty($seat['row']) ? $seat['row'] : 'Standard';
-            $number = $seat['number'] ?? ($seat['seat_number'] ?? rand(1000, 9999));
+            // These now come from the stadium seat map JS
+            $stand  = $seat['stand'] ?? 'General Admission';
+            $row    = $seat['row'] ?? 'Standard';
+            $number = $seat['number'] ?? ($seat['seat_number'] ?? null);
+
+            if ($number === null) {
+                // If, for some reason, number is still missing, skip this seat
+                continue;
+            }
 
             try {
                 // updateOrCreate inside Try-Catch ensures the loop never crashes the whole site
