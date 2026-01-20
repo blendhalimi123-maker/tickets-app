@@ -60,10 +60,11 @@ class CheckoutController extends Controller
             ]);
 
         try {
-            Mail::to($user->email)->send(new UserTicketMail($cartItems, $user));        
+            Mail::to($user->email)->send(new UserTicketMail($cartItems, $user));
             Mail::to('blendhalimi123@gmail.com')->send(new AdminNewSaleMail($cartItems, $user));
         } catch (\Exception $e) {
             \Log::error("Mail failed: " . $e->getMessage());
+            session()->flash('mail_warning', 'Payment succeeded, but we could not send the email receipt right now (mail is not configured on this server).');
         }
 
         return redirect()->route('checkout.success', ['id' => $purchasedId]);

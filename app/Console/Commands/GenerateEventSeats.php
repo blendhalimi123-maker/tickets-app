@@ -24,24 +24,29 @@ class GenerateEventSeats extends Command
 
         $this->info("Generating seats for event: {$event->title}");
 
-        $seats = Seat::with('entry.stand')->get();
+        $seats = Seat::query()->get();
 
         foreach ($seats as $seat) {
-            $standName = ucfirst(strtolower($seat->entry->stand->name));
+            $standName = ucfirst(strtolower((string) $seat->stand));
+            $isVip = str_contains(strtolower((string) $seat->category), 'vip');
             $price = match ($standName) {
                 'East' => $event->east_price,
-                'West' => $seat->type === 'vip' ? $event->west_vip_price : $event->west_price,
+                'West' => $isVip ? $event->west_vip_price : $event->west_price,
                 'North' => $event->north_price,
                 'South' => $event->south_price,
                 default => 0,
             };
 
-            EventSeat::create([
-                'event_id' => $event->id,
-                'seat_id' => $seat->id,
-                'price' => $price,
-                'status' => 'available',
-            ]);
+            EventSeat::updateOrCreate(
+                [
+                    'event_id' => $event->id,
+                    'seat_id' => $seat->id,
+                ],
+                [
+                    'price' => $price,
+                    'status' => 'available',
+                ]
+            );
         }
 
         $this->info("All seats generated successfully!");

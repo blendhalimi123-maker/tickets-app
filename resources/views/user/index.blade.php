@@ -128,7 +128,7 @@
         <p class="subtitle">Manage tickets, view schedules, and stay updated with football events</p>
     </div>
 
-    <div class="grid-cards">
+    <!-- <div class="grid-cards">
         <div class="card-modern">
             <div class="card-header">
                 <div class="icon-circle icon-purple">
@@ -140,7 +140,7 @@
             <a href="{{ route('tickets.index') }}" class="btn-action">
                 <i class="bi bi-ticket-perforated"></i> View Tickets
             </a>
-        </div>
+        </div> -->
 
         <div class="card-modern">
             <div class="card-header">

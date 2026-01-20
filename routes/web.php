@@ -78,6 +78,10 @@ Route::get('/team-schedule', function () {
     return view('football.schedule');
 })->name('football.schedule');
 
+Route::get('/dashboard-events', function () {
+    return view('football.events');
+})->name('football.events');
+
 Route::prefix('api/football')->group(function () {
     Route::get('/all', [ApiFootballController::class, 'allCompetitions']);
     Route::get('/champions-league', [ApiFootballController::class, 'championsLeague']);
@@ -111,9 +115,9 @@ Route::middleware(['auth'])->group(function () {
         $user = auth()->user();
         $tickets = Ticket::where('user_id', $user->id)->get();
 
-        Mail::to($user->email)->send(new UserTicketMail($tickets, $user));
-        
-        Mail::to('admin@tickets-app.com')->send(new AdminNewSaleMail($tickets, $user));
+        // Emails are already sent during the checkout process in CheckoutController@process.
+        // We intentionally do NOT send them again here to avoid duplicate mails
+        // and to ensure the success page is not blocked by mail configuration errors.
 
         return view('checkout.success', compact('tickets', 'id'));
     })->name('checkout.success');

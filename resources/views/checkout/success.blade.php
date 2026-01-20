@@ -6,6 +6,11 @@
         <div class="col-md-6 text-center">
             <div class="card shadow border-0 py-5">
                 <div class="card-body">
+                    @if (session('mail_warning'))
+                        <div class="alert alert-warning text-start" role="alert">
+                            {{ session('mail_warning') }}
+                        </div>
+                    @endif
                     <div class="mb-4">
                         <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
                     </div>
