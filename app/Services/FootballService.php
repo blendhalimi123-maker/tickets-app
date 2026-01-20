@@ -44,6 +44,21 @@ class FootballService
         return $this->getCompetitionMatches('WC', $cacheMinutes);
     }
 
+    public function getMatchById($matchId)
+    {
+        $response = Http::withOptions(['verify' => false])
+            ->withHeaders(['X-Auth-Token' => $this->apiKey])
+            ->get("{$this->baseUrl}/matches/{$matchId}");
+
+        if (!$response->successful()) {
+            \Log::error("Football API match lookup error ({$matchId}): " . $response->status());
+            return null;
+        }
+
+        $data = $response->json();
+        return $data['match'] ?? null;
+    }
+
     public function getAllCompetitions()
     {
         $competitions = [

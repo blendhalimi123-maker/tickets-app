@@ -21,15 +21,23 @@
         <table>
             <thead>
                 <tr>
-                    <th>Event</th>
-                    <th>Ticket Type</th>
+                    <th>Match</th>
+                    <th>Date</th>
+                    <th>Stadium</th>
+                    <th>Stand / Row / Seat</th>
+                    <th>Category</th>
+                    <th>Price</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($tickets as $ticket)
                 <tr>
-                    <td>{{ $ticket->event_name }}</td>
-                    <td>{{ $ticket->ticket_type }}</td>
+                    <td>{{ $ticket->home_team }} vs {{ $ticket->away_team }}</td>
+                    <td>{{ \Carbon\Carbon::parse($ticket->match_date)->format('D d M Y H:i') }}</td>
+                    <td>{{ $ticket->stadium }}</td>
+                    <td>{{ $ticket->stand }} / {{ $ticket->row }} / {{ $ticket->seat_number }}</td>
+                    <td>{{ $ticket->category }}</td>
+                    <td>£{{ number_format($ticket->price, 2) }}</td>
                 </tr>
                 @endforeach
             </tbody>

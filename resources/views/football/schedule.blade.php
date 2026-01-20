@@ -324,6 +324,14 @@ function renderMatches(matches) {
             ? `<button class="btn btn-warning btn-sm" onclick="manageTickets('${match.id}')"><i class="fas fa-cog me-1"></i>Manage</button>`
             : `<button class="btn btn-primary btn-sm" onclick="viewTickets('${match.id}')"><i class="fas fa-ticket-alt me-1"></i>Get Tickets</button>`;
         
+        const homeName = match.homeTeam.shortName || match.homeTeam.name;
+        const awayName = match.awayTeam.shortName || match.awayTeam.name;
+        const venue = match.venue || (match.area ? match.area.name : 'Stadium');
+        const encodedHome = encodeURIComponent(homeName);
+        const encodedAway = encodeURIComponent(awayName);
+        const encodedDate = encodeURIComponent(match.utcDate);
+        const encodedVenue = encodeURIComponent(venue);
+
         const matchCard = document.createElement('div');
         matchCard.className = 'card mb-3 border-0 shadow-sm';
         matchCard.innerHTML = `
@@ -343,12 +351,16 @@ function renderMatches(matches) {
                     <div class="col-md-2 text-center"><span class="badge bg-light text-dark px-3 py-2">VS</span></div>
                     <div class="col-md-4 d-flex align-items-center justify-content-end">
                         <div class="text-end me-3">
-                            <div class="fw-bold">${match.awayTeam.shortName || match.awayTeam.name}</div>
+                            <div class="fw-bold">${awayName}</div>
                         </div>
                         <img src="${match.awayTeam.crest || getTeamIcon(match.awayTeam.name)}" class="team-crest">
                     </div>
                 </div>
-                <div class="text-end mt-2">${buttonHtml}</div>
+                <div class="text-end mt-2">${
+                    isAdmin
+                        ? buttonHtml
+                        : `<button class="btn btn-primary btn-sm" onclick="viewTickets('${match.id}','${encodedHome}','${encodedAway}','${encodedDate}','${encodedVenue}')"><i class="fas fa-ticket-alt me-1"></i>Get Tickets</button>`
+                  }</div>
             </div>`;
         container.appendChild(matchCard);
     });
@@ -441,7 +453,14 @@ function showLoading() { document.getElementById('loading-state').classList.remo
 function hideLoading() { document.getElementById('loading-state').classList.add('d-none'); }
 function showError() { document.getElementById('loading-state').classList.add('d-none'); document.getElementById('error-state').classList.remove('d-none'); }
 function refreshData() { fetchCompetitionData(); }
-function viewTickets(id) { window.location.href = `/stadium/${id}`; }
+function viewTickets(id, home, away, date, venue) {
+    const url = new URL(`/stadium/${id}`, window.location.origin);
+    if (home) url.searchParams.set('home', decodeURIComponent(home));
+    if (away) url.searchParams.set('away', decodeURIComponent(away));
+    if (date) url.searchParams.set('date', decodeURIComponent(date));
+    if (venue) url.searchParams.set('venue', decodeURIComponent(venue));
+    window.location.href = url.toString();
+}
 function manageTickets(id) { window.location.href = `/admin/tickets/${id}`; }
 </script>
 

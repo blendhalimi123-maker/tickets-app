@@ -39,12 +39,12 @@ class GenerateEventSeats extends Command
 
             EventSeat::updateOrCreate(
                 [
-                    'event_id' => $event->id,
-                    'seat_id' => $seat->id,
+                'event_id' => $event->id,
+                'seat_id' => $seat->id,
                 ],
                 [
-                    'price' => $price,
-                    'status' => 'available',
+                'price' => $price,
+                'status' => 'available',
                 ]
             );
         }

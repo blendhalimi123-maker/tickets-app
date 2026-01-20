@@ -115,10 +115,6 @@ Route::middleware(['auth'])->group(function () {
         $user = auth()->user();
         $tickets = Ticket::where('user_id', $user->id)->get();
 
-        // Emails are already sent during the checkout process in CheckoutController@process.
-        // We intentionally do NOT send them again here to avoid duplicate mails
-        // and to ensure the success page is not blocked by mail configuration errors.
-
         return view('checkout.success', compact('tickets', 'id'));
     })->name('checkout.success');
 
