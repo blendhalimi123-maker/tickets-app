@@ -111,7 +111,10 @@
                     <div class="col-md-4">
                         <label class="form-label small fw-bold">Filter by Date</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" id="date-filter" placeholder="Select date...">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-calendar-alt text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0" id="date-filter" placeholder="Select date..." readonly style="background-color: #fff; cursor: pointer;">
                             <button class="btn btn-outline-secondary" type="button" onclick="clearFilters()">
                                 <i class="fas fa-times"></i>
                             </button>
@@ -187,6 +190,7 @@
         </div>
     </div>
 </div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 <script>
@@ -276,13 +280,11 @@ function updateCompetitionTitle() {
 
 function updateCompetitionBackground() {
     const hero = document.getElementById('competition-hero');
-    
     const backgroundImages = {
         'premier-league': "url('/images/PremierLeague.jpg')",
         'champions-league': "url('/images/ChampionsLeague.jpg')",
         'world-cup': "url('/images/WorldCup.jpg')"
     };
-    
     hero.style.backgroundImage = backgroundImages[currentCompetition];
     hero.style.backgroundSize = 'cover';
     hero.style.backgroundPosition = 'center';
@@ -290,23 +292,10 @@ function updateCompetitionBackground() {
 }
 
 function updateCompetitionCards() {
-    const matchCounts = {
-        'premier-league': allMatches.length,
-        'champions-league': 0,
-        'world-cup': 0
-    };
-    
+    const matchCounts = { 'premier-league': allMatches.length, 'champions-league': 0, 'world-cup': 0 };
     document.getElementById('premier-count').textContent = `${matchCounts['premier-league']} matches`;
-    
-    if (currentCompetition === 'champions-league') {
-        matchCounts['champions-league'] = allMatches.length;
-        document.getElementById('champions-count').textContent = `${allMatches.length} matches`;
-    }
-    
-    if (currentCompetition === 'world-cup') {
-        matchCounts['world-cup'] = allMatches.length;
-        document.getElementById('worldcup-count').textContent = `${allMatches.length} matches`;
-    }
+    if (currentCompetition === 'champions-league') document.getElementById('champions-count').textContent = `${allMatches.length} matches`;
+    if (currentCompetition === 'world-cup') document.getElementById('worldcup-count').textContent = `${allMatches.length} matches`;
 }
 
 function updateUrl(page) {
@@ -319,11 +308,9 @@ function updateUrl(page) {
 function renderMatches(matches) {
     const container = document.getElementById('matches-list');
     container.innerHTML = '';
-    
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const paginatedItems = matches.slice(startIndex, endIndex);
-    
     const isAdmin = {{ auth()->check() && auth()->user()->isAdmin() ? 'true' : 'false' }};
     
     paginatedItems.forEach(match => {
@@ -365,7 +352,6 @@ function renderMatches(matches) {
             </div>`;
         container.appendChild(matchCard);
     });
-
     renderPagination(matches.length);
 }
 
@@ -373,12 +359,9 @@ function renderPagination(totalItems) {
     const controls = document.getElementById('pagination-controls');
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     controls.innerHTML = '';
-
     if (totalPages <= 1) return;
-
     let html = `<nav><ul class="pagination mb-0">`;
     html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="javascript:void(0)" onclick="changePage(${currentPage - 1})">Previous</a></li>`;
-    
     for (let i = 1; i <= totalPages; i++) {
         if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
             html += `<li class="page-item ${currentPage === i ? 'active' : ''}"><a class="page-link" href="javascript:void(0)" onclick="changePage(${i})">${i}</a></li>`;
@@ -386,7 +369,6 @@ function renderPagination(totalItems) {
             html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
         }
     }
-
     html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="javascript:void(0)" onclick="changePage(${currentPage + 1})">Next</a></li>`;
     html += `</ul></nav>`;
     controls.innerHTML = html;
@@ -403,26 +385,14 @@ function changePage(page) {
 
 function applyFilters(shouldResetPage = true) {
     const teamFilter = document.getElementById('team-filter').value.toLowerCase();
-    
-    if (shouldResetPage) {
-        currentPage = 1;
-        updateUrl(1);
-    }
-    
+    if (shouldResetPage) { currentPage = 1; updateUrl(1); }
     currentFilteredMatches = allMatches.filter(match => {
-        const matchesTeam = !teamFilter || 
-            match.homeTeam.name.toLowerCase().includes(teamFilter) || 
-            match.awayTeam.name.toLowerCase().includes(teamFilter);
-        
-        const matchesDate = !selectedDate || 
-            new Date(match.utcDate).toDateString() === selectedDate.toDateString();
-            
+        const matchesTeam = !teamFilter || match.homeTeam.name.toLowerCase().includes(teamFilter) || match.awayTeam.name.toLowerCase().includes(teamFilter);
+        const matchesDate = !selectedDate || new Date(match.utcDate).toDateString() === selectedDate.toDateString();
         return matchesTeam && matchesDate;
     });
-    
     updateStats(currentFilteredMatches);
     updateFilterResultsCount();
-    
     if (currentFilteredMatches.length === 0) {
         document.getElementById('matches-container').classList.add('d-none');
         document.getElementById('no-filter-results').classList.remove('d-none');
@@ -440,10 +410,11 @@ function clearFilters() {
     document.getElementById('date-filter-display').classList.add('d-none');
     applyFilters(true);
 }
-/////////////////////////////
+
 function initializeDatepicker() {
     $('#date-filter').datepicker({
         dateFormat: 'yy-mm-dd',
+        showAnim: "fadeIn",
         onSelect: function(dateText) {
             selectedDate = new Date(dateText);
             document.getElementById('date-filter-display').textContent = `Filtering: ${selectedDate.toDateString()}`;
@@ -460,67 +431,59 @@ function updateStats(matches) {
 }
 
 function updateFilterResultsCount() {
-    const count = currentFilteredMatches.length;
-    document.getElementById('filter-results-count').textContent = `Showing ${count} matches`;
+    document.getElementById('filter-results-count').textContent = `Showing ${currentFilteredMatches.length} matches`;
 }
 
-function getStatusClass(status) { 
-    return (status === 'SCHEDULED' || status === 'TIMED') ? 'bg-success' : 'bg-warning'; 
-}
-
-function getStatusText(status) { 
-    return (status === 'SCHEDULED' || status === 'TIMED') ? 'Available' : status.charAt(0) + status.slice(1).toLowerCase(); 
-}
-
-function getTeamIcon(name) { 
-    return `data:image/svg+xml;base64,${btoa(`<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="16" fill="#f8f9fa"/><text x="50%" y="50%" font-family="Arial" font-size="12" fill="#6c757d" text-anchor="middle" dy=".3em">${name.charAt(0)}</text></svg>`)}`; 
-}
-
-function showLoading() { 
-    document.getElementById('loading-state').classList.remove('d-none'); 
-    document.getElementById('matches-container').classList.add('d-none'); 
-    document.getElementById('error-state').classList.add('d-none');
-}
-
-function hideLoading() { 
-    document.getElementById('loading-state').classList.add('d-none'); 
-}
-
-function showError() { 
-    document.getElementById('loading-state').classList.add('d-none'); 
-    document.getElementById('error-state').classList.remove('d-none'); 
-}
-
-function refreshData() { 
-    fetchCompetitionData(); 
-}
-
-function viewTickets(id) { 
-    window.location.href = `/stadium/${id}`; 
-}
-
-function manageTickets(id) { 
-    window.location.href = `/admin/tickets/${id}`; 
-}
+function getStatusClass(status) { return (status === 'SCHEDULED' || status === 'TIMED') ? 'bg-success' : 'bg-warning'; }
+function getStatusText(status) { return (status === 'SCHEDULED' || status === 'TIMED') ? 'Available' : status.charAt(0) + status.slice(1).toLowerCase(); }
+function getTeamIcon(name) { return `data:image/svg+xml;base64,${btoa(`<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="16" fill="#f8f9fa"/><text x="50%" y="50%" font-family="Arial" font-size="12" fill="#6c757d" text-anchor="middle" dy=".3em">${name.charAt(0)}</text></svg>`)}`; }
+function showLoading() { document.getElementById('loading-state').classList.remove('d-none'); document.getElementById('matches-container').classList.add('d-none'); document.getElementById('error-state').classList.add('d-none'); }
+function hideLoading() { document.getElementById('loading-state').classList.add('d-none'); }
+function showError() { document.getElementById('loading-state').classList.add('d-none'); document.getElementById('error-state').classList.remove('d-none'); }
+function refreshData() { fetchCompetitionData(); }
+function viewTickets(id) { window.location.href = `/stadium/${id}`; }
+function manageTickets(id) { window.location.href = `/admin/tickets/${id}`; }
 </script>
 
 <style>
 .custom-container { max-width: 1400px; margin: 0 auto; }
-.premier-league-hero { 
-    background: linear-gradient(135deg, #38003c 0%, #00ff85 100%); 
-}
+.premier-league-hero { background: linear-gradient(135deg, #38003c 0%, #00ff85 100%); }
 .competition-icon { width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; }
 .team-crest { width: 40px; height: 40px; object-fit: contain; }
 .pagination .page-link { color: #38003c; cursor: pointer; }
 .pagination .page-item.active .page-link { background-color: #38003c; border-color: #38003c; color: white; }
 .smaller { font-size: 0.75rem; }
+.competition-card { transition: transform 0.2s, box-shadow 0.2s; }
+.competition-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
 
-.competition-card {
-    transition: transform 0.2s, box-shadow 0.2s;
+/* --- Modern JQuery Datepicker Overrides --- */
+#ui-datepicker-div {
+    border: none !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    border-radius: 12px !important;
+    padding: 10px !important;
+    background: #fff !important;
+    z-index: 1000 !important;
 }
-.competition-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+.ui-datepicker-header {
+    background: #38003c !important;
+    border: none !important;
+    border-radius: 8px !important;
+    color: white !important;
 }
+.ui-datepicker-title { font-weight: 600 !important; }
+.ui-state-default, .ui-widget-content .ui-state-default {
+    border: none !important;
+    background: transparent !important;
+    text-align: center !important;
+    border-radius: 6px !important;
+}
+.ui-state-hover { background: #f0f0f0 !important; }
+.ui-state-active, .ui-widget-content .ui-state-active {
+    background: #00ff85 !important;
+    color: #38003c !important;
+    font-weight: bold !important;
+}
+.ui-icon { filter: brightness(0) invert(1); }
 </style>
 @endsection
