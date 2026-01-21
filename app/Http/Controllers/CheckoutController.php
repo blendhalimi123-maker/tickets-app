@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail; 
 use App\Mail\UserTicketMail; 
 use App\Mail\AdminNewSaleMail;
+use Illuminate\Support\Facades\Log; // Added for debugging
 
 class CheckoutController extends Controller
 {
@@ -60,11 +61,18 @@ class CheckoutController extends Controller
             ]);
 
         try {
-            Mail::to($user->email)->send(new UserTicketMail($cartItems, $user));
             Mail::to('blendhalimi123@gmail.com')->send(new AdminNewSaleMail($cartItems, $user));
+
+            if ($user && $user->email) {
+                Mail::to($user->email)->send(new UserTicketMail($cartItems, $user));
+            } else {
+                Log::warning("User email missing for User ID: " . $user->id);
+            }
+
         } catch (\Exception $e) {
-            \Log::error("Mail failed: " . $e->getMessage());
-            session()->flash('mail_warning', 'Payment succeeded, but we could not send the email receipt right now (mail is not configured on this server).');
+            Log::error("Mail failed to send. Error: " . $e->getMessage());
+            
+            session()->flash('mail_warning', 'Payment succeeded, but we could not send the email receipt. Error: ' . $e->getMessage());
         }
 
         return redirect()->route('checkout.success', ['id' => $purchasedId]);
