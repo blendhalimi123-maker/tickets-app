@@ -6,16 +6,15 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use App\Events\UserRegistered; 
 
 class RegisterController extends Controller
- {
-    // Show registration 
+{
     public function showRegistrationForm()
     {
         return view('auth.register'); 
     }
 
-    // Handle registration
     public function register(Request $request)
     {
         $request->validate([
@@ -30,6 +29,12 @@ class RegisterController extends Controller
             'password' => Hash::make($request->password),
             'role' => 'user', 
         ]);
+
+        try {
+            event(new UserRegistered($user));
+        } catch (\Exception $e) {
+            \Log::error("Registration Broadcast failed: " . $e->getMessage());
+        }
 
         auth()->login($user); 
 

@@ -8,13 +8,11 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    // login 
     public function showLoginForm()
     {
         return view('auth.login'); 
     }
 
-    // Handle login
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
@@ -35,7 +33,6 @@ class LoginController extends Controller
         ]);
     }
 
-    // Logout
     public function logout(Request $request)
     {
         Auth::logout();

@@ -32,13 +32,13 @@ Route::post('/register', [RegisterController::class, 'register'])->name('registe
 Route::middleware([RoleMiddleware::class . ':admin'])->group(function () {
     Route::get('/admin/tickets/{gameId}', [PriceController::class, 'manage'])->name('admin.tickets.manage');
     Route::put('/admin/tickets/{gameId}', [PriceController::class, 'update'])->name('admin.tickets.update');
-    
+
     Route::resource('tickets', TicketController::class)->except(['index', 'show']);
-    
+
     Route::get('/admin', function () {
         return view('admin.index');
     })->name('admin.index');
-    
+
     Route::get('/admin/dashboard', function () {
         return view('admin.dashboard', [
             'totalUsers' => User::count(),
@@ -47,15 +47,15 @@ Route::middleware([RoleMiddleware::class . ':admin'])->group(function () {
             'pendingActions' => 3,
         ]);
     })->name('admin.dashboard');
-    
+
     Route::get('/admin/schedules', function () {
         return view('admin.schedules');
     })->name('admin.schedules');
-    
+
     Route::post('/admin/schedules', function () {
         return redirect()->route('admin.schedules')->with('success', 'Schedule added successfully!');
     })->name('admin.schedules.store');
-    
+
     Route::get('/admin/users', [UserController::class, 'index'])->name('admin.users');
     Route::get('/admin/users/create', [UserController::class, 'create'])->name('admin.users.create');
     Route::post('/admin/users', [UserController::class, 'store'])->name('admin.users.store');
@@ -111,7 +111,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
 
-    Route::get('/checkout/success/{id}', function($id) {
+    Route::get('/checkout/success/{id}', function ($id) {
         $user = auth()->user();
         $tickets = Ticket::where('user_id', $user->id)->get();
 

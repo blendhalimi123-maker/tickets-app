@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\UserTicketMail; 
 use App\Mail\AdminNewSaleMail;
 use Illuminate\Support\Facades\Log; // Added for debugging
+use App\Events\TicketPurchased;
 
 class CheckoutController extends Controller
 {
@@ -52,6 +53,13 @@ class CheckoutController extends Controller
 
         $purchasedId = $cartItems->first()->id;
 
+        // compute totals to include in the admin event
+        $subtotal = $cartItems->sum(function ($item) {
+            return $item->price * $item->quantity;
+        });
+        $serviceFee = $cartItems->count() * 2.50;
+        $total = $subtotal + $serviceFee;
+
         GameCart::where('user_id', $user->id)
             ->where('status', 'in_cart')
             ->update([
@@ -67,6 +75,13 @@ class CheckoutController extends Controller
                 Mail::to($user->email)->send(new UserTicketMail($cartItems, $user));
             } else {
                 Log::warning("User email missing for User ID: " . $user->id);
+            }
+
+            // Dispatch a broadcast event so admins receive the live notification
+            try {
+                event(new TicketPurchased($cartItems, $user, $total));
+            } catch (\Exception $e) {
+                Log::error('Failed to dispatch TicketPurchased event: ' . $e->getMessage());
             }
 
         } catch (\Exception $e) {

@@ -199,13 +199,13 @@
         }
 
         .seat-info-panel {
-            background: #020617;
+            background: #170202;
             border-radius: 18px;
             padding: 18px 20px;
             margin-top: 20px;
             box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
             border: 1px solid rgba(148, 163, 184, 0.45);
-            color: #000000;
+            color: #d80000;
         }
 
         .legend-pill {
@@ -266,13 +266,11 @@
                         <rect x="30" y="20" width="740" height="480" rx="90" fill="url(#bowl)" stroke="rgba(255,255,255,.14)" />
                         <rect x="85" y="65" width="630" height="390" rx="70" fill="rgba(0,0,0,.30)" stroke="rgba(255,255,255,.10)" />
 
-                        <!-- pitch -->
                         <rect x="230" y="130" width="340" height="260" rx="10" fill="url(#pitch)" stroke="rgba(255,255,255,.8)" />
                         <rect x="260" y="160" width="280" height="200" rx="8" fill="transparent" stroke="rgba(255,255,255,.75)" />
                         <circle cx="400" cy="260" r="38" fill="transparent" stroke="rgba(255,255,255,.75)" />
                         <line x1="400" y1="130" x2="400" y2="390" stroke="rgba(255,255,255,.75)" />
 
-                        <!-- stands (clickable) -->
                         <g class="section" data-stand="north">
                             <path d="M120 75 H680 Q705 75 705 100 V145 Q705 160 690 160 H110 Q95 160 95 145 V100 Q95 75 120 75Z"
                                   fill="rgba(234,179,8,.85)" stroke="rgba(255,255,255,.25)" />
