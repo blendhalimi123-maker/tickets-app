@@ -62,6 +62,7 @@
 </div>
 
 <audio id="admin-alert-sound" src="{{ asset('sounds/sale-alert.mp3') }}" preload="auto"></audio>
+<div class="toast-container position-fixed top-0 end-0 p-3" id="admin-toast-container" style="z-index: 1080;"></div>
 
 <style>
     @keyframes flash-gold {
@@ -82,45 +83,74 @@
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        if (typeof Echo !== 'undefined') {
-            
-            Echo.private('admin-channel')
-                .listen('TicketPurchased', (e) => {
-                    handleNewActivity('TICKET', e.adminData.match, e.adminData.customer, `£${e.adminData.total}`, 'text-success fw-bold');
-                });
+    function showAdminToast(title, payload) {
+        const container = document.getElementById('admin-toast-container');
+        if (!container || !payload) return;
 
-            Echo.channel('sales-channel')
-                .listen('UserRegistered', (e) => {
-                    handleNewActivity('NEW USER', 'Joined the club', e.adminData.name, e.adminData.email, 'text-muted small');
-                });
+        const id = 'toast-' + Math.random().toString(36).slice(2);
+        const toastHtml = `
+            <div id="${id}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto">${title}</strong>
+                    <small class="text-muted">${payload.time ?? ''}</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <div class="fw-semibold">${payload.name ?? ''}</div>
+                    <div class="text-muted small">${payload.email ?? ''}</div>
+                </div>
+            </div>
+        `;
 
-            function handleNewActivity(type, detail, user, extra, extraClass) {
-                const noSalesRow = document.getElementById('no-sales-yet');
-                if (noSalesRow) noSalesRow.remove();
+        container.insertAdjacentHTML('afterbegin', toastHtml);
+        const el = document.getElementById(id);
+        if (!el || typeof bootstrap === 'undefined') return;
 
-                const audio = document.getElementById('admin-alert-sound');
-                if (audio) {
-                    audio.play().catch(err => console.log("User interaction needed for audio"));
-                }
+        const toast = new bootstrap.Toast(el, { delay: 6000 });
+        toast.show();
+        el.addEventListener('hidden.bs.toast', () => el.remove());
+    }
 
-                const tableBody = document.getElementById('admin-sales-table-body');
-                const badgeClass = type === 'TICKET' ? 'bg-warning text-dark' : 'bg-info text-dark';
-                
-                const row = `
-                    <tr class="new-sale-row">
-                        <td class="fw-bold text-muted small">${new Date().toLocaleTimeString()}</td>
-                        <td><span class="badge ${badgeClass}">${type}</span></td>
-                        <td>${detail}</td>
-                        <td>
-                            <div>${user}</div>
-                            <div class="${extraClass}">${extra}</div>
-                        </td>
-                    </tr>
-                `;
-                tableBody.insertAdjacentHTML('afterbegin', row);
-            }
+    function handleNewActivity(type, detail, name, email) {
+        const noSalesRow = document.getElementById('no-sales-yet');
+        if (noSalesRow) noSalesRow.remove();
+
+        const audio = document.getElementById('admin-alert-sound');
+        if (audio) {
+            audio.play().catch(() => {});
         }
+
+        const tableBody = document.getElementById('admin-sales-table-body');
+        const badgeClass = type === 'LOGIN' ? 'bg-warning text-dark' : 'bg-info text-dark';
+
+        const row = `
+            <tr class="new-sale-row">
+                <td class="fw-bold text-muted small">${new Date().toLocaleTimeString()}</td>
+                <td><span class="badge ${badgeClass}">${type}</span></td>
+                <td>${detail}</td>
+                <td>
+                    <div>${name}</div>
+                    <div class="text-muted small">${email}</div>
+                </td>
+            </tr>
+        `;
+        tableBody.insertAdjacentHTML('afterbegin', row);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(() => {
+            if (typeof window.Echo === 'undefined') return;
+
+            window.Echo.private('admin.notifications')
+                .listen('UserRegistered', (e) => {
+                    showAdminToast('New Registration', e.payload);
+                    handleNewActivity('REGISTER', 'New user registered', e.payload?.name, e.payload?.email);
+                })
+                .listen('UserLoggedIn', (e) => {
+                    showAdminToast('User Logged In', e.payload);
+                    handleNewActivity('LOGIN', 'User logged in', e.payload?.name, e.payload?.email);
+                });
+        }, 250);
     });
 </script>
 @endsection

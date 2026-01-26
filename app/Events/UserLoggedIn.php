@@ -8,7 +8,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class UserRegistered implements ShouldBroadcastNow
+class UserLoggedIn implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -28,3 +28,4 @@ class UserRegistered implements ShouldBroadcastNow
         return new PrivateChannel('admin.notifications');
     }
 }
+

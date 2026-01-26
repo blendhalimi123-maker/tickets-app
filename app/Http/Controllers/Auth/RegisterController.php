@@ -30,10 +30,11 @@ class RegisterController extends Controller
             'role' => 'user', 
         ]);
 
+        // Notify admins
         try {
             event(new UserRegistered($user));
-        } catch (\Exception $e) {
-            \Log::error("Registration Broadcast failed: " . $e->getMessage());
+        } catch (\Throwable $e) {
+            \Log::warning('UserRegistered broadcast failed: ' . $e->getMessage());
         }
 
         auth()->login($user); 

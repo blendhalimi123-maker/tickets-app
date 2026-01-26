@@ -133,3 +133,12 @@ Route::get('/preview-admin-mail', function () {
     $tickets = Ticket::limit(3)->get();
     return new AdminNewSaleMail($tickets, $user);
 });
+
+Route::get('/debug/broadcast-auth', function () {
+    if (! auth()->check()) {
+        return response()->json(['allowed' => false, 'reason' => 'not_authenticated'], 200);
+    }
+
+    $allowed = method_exists(auth()->user(), 'isAdmin') && auth()->user()->isAdmin();
+    return response()->json(['allowed' => $allowed], 200);
+})->middleware('auth');
