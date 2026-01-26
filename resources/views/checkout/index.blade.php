@@ -21,7 +21,29 @@
                             <div class="col-md-6 mb-3">
 
                                 <label class="form-label fw-semibold">Expiry Date</label>
-                                <input type="text" name="expiry" class="form-control" placeholder="MM/YY" required>
+                                <div class="d-flex gap-2">
+                                    <select id="expiry-month" class="form-select" aria-label="Expiry month" required>
+                                        <option value="">Month</option>
+                                        <option value="01">Jan</option>
+                                        <option value="02">Feb</option>
+                                        <option value="03">Mar</option>
+                                        <option value="04">Apr</option>
+                                        <option value="05">May</option>
+                                        <option value="06">Jun</option>
+                                        <option value="07">Jul</option>
+                                        <option value="08">Aug</option>
+                                        <option value="09">Sep</option>
+                                        <option value="10">Oct</option>
+                                        <option value="11">Nov</option>
+                                        <option value="12">Dec</option>
+                                    </select>
+
+                                    <select id="expiry-year" class="form-select" aria-label="Expiry year" required>
+                                        <option value="">Year</option>
+                                    </select>
+
+                                    <input type="hidden" name="expiry" id="expiry-hidden">
+                                </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-semibold">CVV</label>
@@ -77,4 +99,49 @@
         </div>
     </div>
 </div>
+<script>
+    (function(){
+        const month = document.getElementById('expiry-month');
+        const year = document.getElementById('expiry-year');
+        const hidden = document.getElementById('expiry-hidden');
+
+        const now = new Date();
+        const start = now.getFullYear();
+        const span = 15;
+        for (let i = 0; i < span; i++) {
+            const y = start + i;
+            const opt = document.createElement('option');
+            opt.value = String(y);
+            opt.textContent = y;
+            year.appendChild(opt);
+        }
+
+        function updateHidden(){
+            const m = month.value;
+            const y = year.value;
+            if (!m || !y) {
+                hidden.value = '';
+                return;
+            }
+            const yy = String(y).slice(-2);
+            hidden.value = m + '/' + yy;
+        }
+
+        month.addEventListener('change', updateHidden);
+        year.addEventListener('change', updateHidden);
+
+        const form = month.closest('form');
+        if (form) {
+            form.addEventListener('submit', function(e){
+                updateHidden();
+                if (!hidden.value) {
+                    e.preventDefault();
+                    month.focus();
+                    alert('Please select expiry month and year');
+                }
+            });
+        }
+    })();
+</script>
+
 @endsection
