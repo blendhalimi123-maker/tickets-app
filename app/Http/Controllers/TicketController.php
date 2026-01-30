@@ -3,17 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Ticket;  
+use App\Models\Ticket;
+use App\Models\Game;
+use App\Events\GameTicketSold; // Import your Event
+use Illuminate\Support\Facades\Auth;
 
 class TicketController extends Controller
 {
-    
-     
     public function index()
     {
         $maxTickets = config('tickets.max_tickets_per_user');
-
-
         $tickets = Ticket::all();
         return view("tickets.index", compact('tickets'));
     }
@@ -26,7 +25,7 @@ class TicketController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' =>'required|string|max:255',
+            'title' => 'required|string|max:255',
             'game_date' => 'required|date',
             'stadium'  => 'required|string|max:255',
             'seat_info' => 'required|string|max:255',
@@ -34,35 +33,31 @@ class TicketController extends Controller
         ]);
 
         Ticket::create([
-            'user_id' => 1,
+            'user_id' => Auth::id() ?? 1, // Using current user ID
             'title' => $request->title,
-            'game_date'=> $request->game_date,
+            'game_date' => $request->game_date,
             'stadium' => $request->stadium,
             'seat_info' => $request->seat_info,
             'price' => $request->price,
         ]);
+
         return redirect()->route('tickets.index')->with('success', 'Ticket created successfully!');
-
-
     }
 
-    
     public function show(Ticket $ticket)
     {
         return view('tickets.show', compact('ticket'));
     }
 
-   
     public function edit(Ticket $ticket)
     {
-        return view('tickets.edit', compact ('ticket'));
+        return view('tickets.edit', compact('ticket'));
     }
 
-    
     public function update(Request $request, Ticket $ticket)
     {
-         $request->validate([
-            'title' =>'required|string|max:255',
+        $request->validate([
+            'title' => 'required|string|max:255',
             'game_date' => 'required|date',
             'stadium'  => 'required|string|max:255',
             'seat_info' => 'required|string|max:255',
@@ -71,17 +66,39 @@ class TicketController extends Controller
         ]);
 
         $ticket->update($request->all());
-        return redirect()->route('tickets.index')->with('success','Ticket updated successfully!');
-    
+
+        if ($request->is_available == false) {
+            $game = Game::where('api_game_id', $ticket->api_game_id)->first();
+            if ($game) {
+                broadcast(new GameTicketSold($game))->toOthers();
+            }
+        }
+
+        return redirect()->route('tickets.index')->with('success', 'Ticket updated successfully!');
     }
 
-
     
-     
+    public function buy($id)
+    {
+        $ticket = Ticket::findOrFail($id);
+        
+        $ticket->is_available = false;
+        $ticket->save();
+
+        $game = Game::where('api_game_id', $ticket->api_game_id)->first();
+
+        if ($game) {
+            $game->increment('tickets_sold');
+            
+            broadcast(new GameTicketSold($game))->toOthers();
+        }
+
+        return redirect()->back()->with('success', 'You bought a ticket!');
+    }
+
     public function destroy(Ticket $ticket)
     {
         $ticket->delete();
-        return redirect()->route('tickets.index')->with('success',' Ticket delted succefully');
-        
+        return redirect()->route('tickets.index')->with('success', 'Ticket deleted successfully');
     }
 }

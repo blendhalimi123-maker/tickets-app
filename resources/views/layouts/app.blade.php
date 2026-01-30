@@ -8,6 +8,7 @@
     <title>@yield('title', 'Tickets App')</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     @vite(['resources/js/app.js'])
 
@@ -25,7 +26,6 @@
             padding-top: 70px;
         }
 
-        /* ================= ADMIN ================= */
         .admin-sidebar {
             width: var(--sidebar-width);
             background: #1e293b;
@@ -60,7 +60,6 @@
             color: white;
         }
 
-        /* ================= USER NAVBAR ================= */
         .navbar-custom {
             background: white;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -95,7 +94,6 @@
 
 <body>
 
-{{-- ================= ADMIN LAYOUT ================= --}}
 @if(auth()->check() && auth()->user()->isAdmin())
 
 <div class="admin-sidebar">
@@ -105,38 +103,24 @@
     </div>
 
     <ul class="sidebar-menu flex-grow-1">
-
-        <li>
-            <a href="{{ route('user.dashboard') }}">Dashboard</a>
-        </li>
-
-        <li>
-            <a href="{{ route('admin.index') }}">Home</a>
-        </li>
-
-        <li>
-            <a href="{{ url('/admin/users') }}">Users</a>
-        </li>
-
-        <li>
-            <a href="{{ route('password.change') }}">Settings</a>
-        </li>
+        <li><a href="{{ route('user.dashboard') }}">Dashboard</a></li>
+        <li><a href="{{ route('admin.index') }}">Home</a></li>
+        <li><a href="{{ url('/admin/users') }}">Users</a></li>
+        <li><a href="{{ route('password.change') }}">Settings</a></li>
     </ul>
 
     <div class="p-3 border-top">
         {{ auth()->user()->name }}
-
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <button class="btn btn-sm btn-danger w-100 mt-2">Logout</button>
+            <button type="submit" class="btn btn-sm btn-danger w-100 mt-2">Logout</button>
         </form>
     </div>
 </div>
 
-{{-- ================= USER / GUEST NAVBAR ================= --}}
 @else
 
-<nav class="navbar navbar-expand-lg navbar-custom">
+<nav class="navbar navapbar-expand-lg navbar-custom">
     <div class="container-fluid">
 
         <a class="navbar-brand-container" href="{{ route('user.dashboard') }}">
@@ -146,8 +130,10 @@
         <div class="ms-auto d-flex align-items-center gap-3">
 
             @auth
+                <a href="{{ route('favorites.index') }}" class="nav-link text-dark">
+                    <i class="fa-regular fa-star me-1 text-warning"></i> Favorite Games
+                </a>
 
-                {{-- CART --}}
                 @if(auth()->user()->isUser())
                 <div class="position-relative">
                     <a href="{{ route('cart.index') }}" class="nav-link">
@@ -160,9 +146,8 @@
                 </div>
                 @endif
 
-                {{-- DROPDOWN --}}
                 <div class="dropdown">
-                    <a class="dropdown-toggle nav-link" data-bs-toggle="dropdown">
+                    <a class="dropdown-toggle nav-link" style="cursor: pointer" data-bs-toggle="dropdown">
                         {{ auth()->user()->name }}
                     </a>
 
@@ -172,11 +157,10 @@
                                 Settings
                             </a>
                         </li>
-
                         <li>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button class="dropdown-item text-danger">
+                                <button type="submit" class="dropdown-item text-danger">
                                     Logout
                                 </button>
                             </form>
@@ -195,11 +179,9 @@
 
 @endif
 
-
-<main class="main-content admin-content">
+<main class="main-content {{ auth()->check() && auth()->user()->isAdmin() ? 'admin-content' : '' }}">
     @yield('content')
 </main>
-
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 

@@ -12,7 +12,6 @@ class SeatFactory extends Factory
     public function definition(): array
     {
         return [
-            // row and number will be generated manually in Seeder
             'fixture_id' => 1,
             'row' => 'A',
             'number' => 1,

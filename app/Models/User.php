@@ -5,7 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\Game;
+use App\Models\GameCart;
 
 class User extends Authenticatable
 {
@@ -28,6 +31,7 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
+  
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
@@ -38,7 +42,8 @@ class User extends Authenticatable
         return $this->role === 'user';
     }
 
-    public function gameCartItems()
+
+    public function gameCartItems(): HasMany
     {
         return $this->hasMany(GameCart::class);
     }
@@ -51,25 +56,32 @@ class User extends Authenticatable
     }
 
    
-    public function favorites()
+    public function favorites(): BelongsToMany
     {
-        return $this->belongsToMany(Game::class, 'user_favorites')->withTimestamps();
+        return $this->belongsToMany(Game::class, 'user_favorites')
+                    ->withTimestamps();
     }
 
-    public function hasFavorited($gameId): bool
+    
+    public function hasFavorited($apiGameId): bool
     {
-        return $this->favorites()->where('games.api_game_id', $gameId)->exists();
+        return $this->favorites()->where('api_game_id', $apiGameId)->exists();
     }
 
-    public function favorite($gameId): void
+    public function favorite($apiGameId): void
     {
-        $game = Game::firstOrCreate(['api_game_id' => $gameId], ['title' => 'Match ' . $gameId]);
+        $game = Game::firstOrCreate(
+            ['api_game_id' => $apiGameId], 
+            ['title' => 'Match ' . $apiGameId] 
+        );
+        
         $this->favorites()->syncWithoutDetaching([$game->id]);
     }
 
-    public function unfavorite($gameId): void
+    public function unfavorite($apiGameId): void
     {
-        $game = Game::where('api_game_id', $gameId)->first();
+        $game = Game::where('api_game_id', $apiGameId)->first();
+        
         if ($game) {
             $this->favorites()->detach($game->id);
         }

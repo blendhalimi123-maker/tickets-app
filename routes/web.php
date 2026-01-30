@@ -119,7 +119,6 @@ Route::middleware(['auth'])->group(function () {
         return view('checkout.success', compact('tickets', 'id'));
     })->name('checkout.success');
 
-    // Favorites: get list and toggle favorite status (requires auth)
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/favorites/{gameId}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
@@ -138,9 +137,12 @@ Route::get('/preview-admin-mail', function () {
     $tickets = Ticket::limit(3)->get();
     return new AdminNewSaleMail($tickets, $user);
 });
+Route::middleware(['auth'])->group(function () {
+    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+});
 
 Route::get('/debug/broadcast-auth', function () {
-    if (! auth()->check()) {
+    if (!auth()->check()) {
         return response()->json(['allowed' => false, 'reason' => 'not_authenticated'], 200);
     }
 
