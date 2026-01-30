@@ -8,8 +8,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail; 
 use App\Mail\UserTicketMail; 
 use App\Mail\AdminNewSaleMail;
-use Illuminate\Support\Facades\Log; // Added for debugging
+use Illuminate\Support\Facades\Log; 
 use App\Events\TicketPurchased;
+use App\Events\GameTicketSold;
+use App\Models\Game;
 
 class CheckoutController extends Controller
 {
@@ -53,7 +55,6 @@ class CheckoutController extends Controller
 
         $purchasedId = $cartItems->first()->id;
 
-        // compute totals to include in the admin event
         $subtotal = $cartItems->sum(function ($item) {
             return $item->price * $item->quantity;
         });
@@ -68,6 +69,22 @@ class CheckoutController extends Controller
                 'updated_at' => now()
             ]);
 
+        // Update games tickets_sold and broadcast to favorited subscribers
+        try {
+            $grouped = $cartItems->groupBy('api_game_id');
+            foreach ($grouped as $apiId => $items) {
+                $soldQty = $items->sum('quantity');
+                $game = Game::firstOrCreate(['api_game_id' => $apiId], ['title' => 'Match ' . $apiId]);
+                $game->increment('tickets_sold', $soldQty);
+                // reload to get current tickets_sold/left
+                $game->refresh();
+
+                event(new GameTicketSold($game, $soldQty));
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to update Game tickets or broadcast GameTicketSold: ' . $e->getMessage());
+        }
+
         try {
             Mail::to('blendhalimi123@gmail.com')->send(new AdminNewSaleMail($cartItems, $user));
 
@@ -77,7 +94,6 @@ class CheckoutController extends Controller
                 Log::warning("User email missing for User ID: " . $user->id);
             }
 
-            // Dispatch a broadcast event so admins receive the live notification
             try {
                 event(new TicketPurchased($cartItems, $user, $total));
             } catch (\Exception $e) {

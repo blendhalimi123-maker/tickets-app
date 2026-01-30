@@ -201,6 +201,83 @@ let currentPage = 1;
 let currentCompetition = 'premier-league';
 const itemsPerPage = 10;
 
+let favoritesSet = new Set();
+const subscriptions = {}; 
+
+async function loadFavorites() {
+    try {
+        const res = await fetch('/favorites');
+        if (!res.ok) return;
+        const json = await res.json();
+        favoritesSet = new Set((json.favorites || []).map(String));
+        for (const apiId of favoritesSet) {
+            subscribeToGameChannel(apiId);
+        }
+    } catch (e) {
+        console.warn('Failed to load favorites', e);
+    }
+}
+
+function subscribeToGameChannel(apiId) {
+    if (typeof window.Echo === 'undefined') return;
+    if (subscriptions[apiId]) return;
+
+    try {
+        subscriptions[apiId] = window.Echo.private(`game.${apiId}`)
+            .listen('GameTicketSold', (e) => {
+                showToast(e.message || 'Update for this match');
+            });
+    } catch (err) {
+        console.warn('Subscribe failed', err);
+    }
+}
+
+function unsubscribeFromGameChannel(apiId) {
+    if (typeof window.Echo === 'undefined') return;
+    if (!subscriptions[apiId]) return;
+
+    try {
+        window.Echo.leave(`game.${apiId}`);
+        delete subscriptions[apiId];
+    } catch (err) {
+        console.warn('Unsubscribe failed', err);
+    }
+}
+
+function showToast(html, { duration = 4000 } = {}) {
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification bg-dark text-white p-3 rounded shadow-sm';
+    toast.style.position = 'fixed';
+    toast.style.right = '20px';
+    toast.style.bottom = '20px';
+    toast.style.zIndex = 9999;
+    toast.style.opacity = '0';
+    toast.style.maxWidth = '320px';
+    toast.innerHTML = html;
+
+    toast.style.transform = 'translateY(8px)';
+    setTimeout(() => toast.style.transform = 'translateY(0)', 100);
+    document.body.appendChild(toast);
+    setTimeout(() => toast.style.opacity = '1', 50);
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, duration);
+}
+
+function formatIsoDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+
+function escapeHtml(unsafe) {
+    return String(unsafe)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     currentPage = parseInt(urlParams.get('page')) || 1;
@@ -211,10 +288,66 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('competition-select').value = currentCompetition;
     }
 
-    fetchCompetitionData();
+    loadFavorites().finally(() => {
+        fetchCompetitionData();
+    });
+
     setInterval(refreshData, 30000);
     initializeDatepicker();
     updateCompetitionBackground(); 
+
+    document.getElementById('matches-list').addEventListener('click', async function (e) {
+        const btn = e.target.closest('.favorite-btn');
+        if (!btn) return;
+
+        const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+        if (!isAuthenticated) {
+            window.location.href = '/login';
+            return;
+        }
+
+        const apiId = btn.dataset.gameId;
+
+        try {
+            const res = await fetch(`/favorites/${apiId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                }
+            });
+
+            const json = await res.json();
+            const home = decodeURIComponent(btn.dataset.home || '');
+            const away = decodeURIComponent(btn.dataset.away || '');
+            const dateIso = btn.dataset.date || '';
+            const dateStr = formatIsoDate(dateIso);
+
+            if (json.status === 'favorited') {
+                favoritesSet.add(String(apiId));
+                subscribeToGameChannel(String(apiId));
+                const icon = btn.querySelector('.favorite-icon');
+                if (icon) {
+                    icon.innerText = '★';
+                    icon.classList.add('favorited');
+                }
+
+                showToast(`<div><strong>${escapeHtml(home)} vs ${escapeHtml(away)}</strong> has been <span style="color:#00ff85">added</span> to your favorite games<div class="small text-muted mt-1">${escapeHtml(dateStr)}</div></div>`);
+            } else if (json.status === 'unfavorited') {
+                favoritesSet.delete(String(apiId));
+                unsubscribeFromGameChannel(String(apiId));
+                const icon = btn.querySelector('.favorite-icon');
+                if (icon) {
+                    icon.innerText = '☆';
+                    icon.classList.remove('favorited');
+                }
+
+                showToast(`<div><strong>${escapeHtml(home)} vs ${escapeHtml(away)}</strong> has been removed from your favorite games<div class="small text-muted mt-1">${escapeHtml(dateStr)}</div></div>`);
+            }
+        } catch (err) {
+            console.warn('Failed to toggle favorite', err);
+        }
+    });
 });
 
 async function fetchCompetitionData() {
@@ -334,13 +467,23 @@ function renderMatches(matches) {
 
         const matchCard = document.createElement('div');
         matchCard.className = 'card mb-3 border-0 shadow-sm';
+
+        const idStr = String(match.id);
+        const starred = favoritesSet.has(idStr);
+        const starHtml = `<button class="btn btn-link p-0 favorite-btn" data-game-id="${idStr}" data-home="${encodeURIComponent(homeName)}" data-away="${encodeURIComponent(awayName)}" data-date="${encodeURIComponent(match.utcDate)}" aria-label="Favorite"><span class="favorite-icon ${starred ? 'favorited' : ''}">${starred ? '★' : '☆'}</span></button>`;
+
         matchCard.innerHTML = `
             <div class="card-body p-3">
                 <div class="row align-items-center">
-                    <div class="col-md-2 text-center">
-                        <div class="fw-bold text-primary small">${formattedDate}</div>
+                    <div class="col-md-2 text-center position-relative date-col">
+                        <div class="date-text fw-bold text-primary small" style="position:relative; z-index:2">${formattedDate}</div>
                         <div class="text-muted smaller">${formattedTime}</div>
                         <span class="badge ${statusClass} mt-1">${statusText}</span>
+                        <div class="star-overlay" style="position:absolute; top:6px; left:6px; z-index:3;">${starHtml}</div>
+                        <style>
+                            /* Make room so star doesn't overlap date text */
+                            .date-col .date-text{ padding-left: 34px; }
+                        </style>
                     </div>
                     <div class="col-md-4">
                         <div class="d-flex align-items-center">
@@ -475,7 +618,6 @@ function manageTickets(id) { window.location.href = `/admin/tickets/${id}`; }
 .competition-card { transition: transform 0.2s, box-shadow 0.2s; }
 .competition-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
 
-/* --- Modern JQuery Datepicker Overrides --- */
 #ui-datepicker-div {
     border: none !important;
     box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
@@ -484,6 +626,27 @@ function manageTickets(id) { window.location.href = `/admin/tickets/${id}`; }
     background: #fff !important;
     z-index: 1000 !important;
 }
+
+.toast-notification{
+    transition: opacity 0.3s ease;
+}
+
+.date-col { position: relative; }
+
+.star-overlay .favorite-icon{
+    font-size: 22px;
+    color: #9aa0a6; 
+    opacity: 0.9;
+    line-height: 1;
+    pointer-events: none; 
+}
+
+.favorite-icon.favorited{
+    color: #f5c518 !important; 
+    opacity: 1 !important;
+}
+
+.favorite-btn{ cursor: pointer; background: transparent; border: 0; padding: 0; }
 .ui-datepicker-header {
     background: #38003c !important;
     border: none !important;

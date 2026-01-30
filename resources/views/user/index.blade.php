@@ -141,44 +141,45 @@
                 <i class="bi bi-ticket-perforated"></i> View Tickets
             </a>
         </div> -->
-
-        <div class="card-modern">
-            <div class="card-header">
-                <div class="icon-circle icon-green">
-                    <i class="bi bi-calendar-week"></i>
+        <div class="crds d-flex gap-4 flex-wrap px-0">
+            <div class="card-modern flex-grow-1">
+                <div class="card-header">
+                    <div class="icon-circle icon-green">
+                        <i class="bi bi-calendar-week"></i>
+                    </div>
+                    <h3 class="card-title">Schedule</h3>
                 </div>
-                <h3 class="card-title">Schedule</h3>
+                <p class="card-description">Check match fixtures, times, and venues. Never miss a game with updates.</p>
+                <a href="{{ route('football.schedule') }}" class="btn-action">
+                    <i class="bi bi-calendar-week"></i> View Schedule
+                </a>
             </div>
-            <p class="card-description">Check match fixtures, times, and venues. Never miss a game with updates.</p>
-            <a href="{{ route('football.schedule') }}" class="btn-action">
-                <i class="bi bi-calendar-week"></i> View Schedule
-            </a>
-        </div>
 
-        <div class="card-modern">
-            <div class="card-header">
-                <div class="icon-circle icon-orange">
-                    <i class="bi bi-megaphone"></i>
+            <div class="card-modern flex-grow-1">
+                <div class="card-header">
+                    <div class="icon-circle icon-orange">
+                        <i class="bi bi-megaphone"></i>
+                    </div>
+                    <h3 class="card-title">Events</h3>
                 </div>
-                <h3 class="card-title">Events</h3>
+                <p class="card-description">Stay updated with latest football events, tournaments, and promotions.</p>
+                <button class="btn-action btn-secondary" onclick="showEvents()">
+                    <i class="bi bi-megaphone"></i> Explore
+                </button>
             </div>
-            <p class="card-description">Stay updated with latest football events, tournaments, and promotions.</p>
-            <button class="btn-action btn-secondary" onclick="showEvents()">
-                <i class="bi bi-megaphone"></i> Explore
-            </button>
-        </div>
 
-        <div class="card-modern">
-            <div class="card-header">
-                <div class="icon-circle icon-blue">
-                    <i class="bi bi-graph-up"></i>
+            <div class="card-modern flex-grow-1">
+                <div class="card-header">
+                    <div class="icon-circle icon-blue">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <h3 class="card-title">Statistics</h3>
                 </div>
-                <h3 class="card-title">Statistics</h3>
+                <p class="card-description">Track your booking history and favorite teams with analytics.</p>
+                <button class="btn-action btn-secondary" onclick="showStats()">
+                    <i class="bi bi-graph-up"></i> View Stats
+                </button>
             </div>
-            <p class="card-description">Track your booking history and favorite teams with analytics.</p>
-            <button class="btn-action btn-secondary" onclick="showStats()">
-                <i class="bi bi-graph-up"></i> View Stats
-            </button>
         </div>
     </div>
 

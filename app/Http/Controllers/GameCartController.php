@@ -209,4 +209,12 @@ class GameCartController extends Controller
 
         return view('tickets.myticket', compact('tickets'));
     }
+
+    public function tickets_api()
+    {
+       $tickets = GameCart::where('user_id', 1);
+        return response()->json($tickets);
+    }
+
+
 }

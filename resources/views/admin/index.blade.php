@@ -31,8 +31,8 @@
                 <div class="col-md-10 text-start">
                     <div class="card shadow-sm border-0">
                         <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0"><i class="fas fa-bolt me-2 text-warning"></i>Live Activity Alerts</h5>
-                            <span class="badge bg-danger animate-pulse" id="live-indicator">LIVE</span>
+                            <h5 class="mb-0"><i class="fas fa-bolt me-2 text-warning"></i>Live Activity </h5>
+                            <!-- <span class="badge bg-danger animate-pulse" id="live-indicator">LIVE</span> -->
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">

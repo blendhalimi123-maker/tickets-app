@@ -48,7 +48,7 @@
 
                 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Price ($)</label>
+                    <label class="form-label fw-bold">Price (£)</label>
                     <input type="number" step="0.01" name="price" class="form-control" value="{{ $ticket->price }}" required>
                 </div>
 

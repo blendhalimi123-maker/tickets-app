@@ -13,6 +13,7 @@ use App\Http\Controllers\GameCartController;
 use App\Http\Controllers\Admin\PriceController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\FavoriteController;
 use App\Models\User;
 use App\Models\Ticket;
 use App\Mail\AdminNewSaleMail;
@@ -117,6 +118,10 @@ Route::middleware(['auth'])->group(function () {
 
         return view('checkout.success', compact('tickets', 'id'));
     })->name('checkout.success');
+
+    // Favorites: get list and toggle favorite status (requires auth)
+    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/favorites/{gameId}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
     Route::get('/my-tickets/{id}/view', [GameCartController::class, 'showMyTicket'])->name('tickets.my');
     Route::get('/my-tickets', [GameCartController::class, 'myTickets'])->name('my-tickets');
