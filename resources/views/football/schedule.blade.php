@@ -111,7 +111,7 @@
                     <div class="col-md-4">
                         <label class="form-label small fw-bold">Filter by Date</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0">
+                            <span class="input-group-text bg-white border-end-0 datepicker-toggle" style="cursor:pointer;">
                                 <i class="fas fa-calendar-alt text-muted"></i>
                             </span>
                             <input type="text" class="form-control border-start-0" id="date-filter" placeholder="Select date..." readonly style="background-color: #fff; cursor: pointer;">
@@ -309,19 +309,30 @@ document.addEventListener('DOMContentLoaded', function() {
         const apiId = btn.dataset.gameId;
 
         try {
-            const res = await fetch(`/favorites/${apiId}`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Accept': 'application/json'
-                }
-            });
-
-            const json = await res.json();
             const home = decodeURIComponent(btn.dataset.home || '');
             const away = decodeURIComponent(btn.dataset.away || '');
             const dateIso = btn.dataset.date || '';
             const dateStr = formatIsoDate(dateIso);
+
+            // send game info so the server can persist title/logos/time
+            const res = await fetch(`/favorites/${apiId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    home_team: home,
+                    away_team: away,
+                    home_logo: decodeURIComponent(btn.dataset.homeLogo || ''),
+                    away_logo: decodeURIComponent(btn.dataset.awayLogo || ''),
+                    match_date: dateIso,
+                    match_time: dateIso ? new Date(dateIso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ''
+                })
+            });
+
+            const json = await res.json();
 
             if (json.status === 'favorited') {
                 favoritesSet.add(String(apiId));
@@ -333,6 +344,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 showToast(`<div><strong>${escapeHtml(home)} vs ${escapeHtml(away)}</strong> has been <span style="color:#00ff85">added</span> to your favorite games<div class="small text-muted mt-1">${escapeHtml(dateStr)}</div></div>`);
+
+                // notify other pages (favorites list) that a favorite was added
+                window.dispatchEvent(new CustomEvent('favorite-updated', { detail: { apiId, status: 'favorited', game: json.game || null } }));
             } else if (json.status === 'unfavorited') {
                 favoritesSet.delete(String(apiId));
                 unsubscribeFromGameChannel(String(apiId));
@@ -343,6 +357,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 showToast(`<div><strong>${escapeHtml(home)} vs ${escapeHtml(away)}</strong> has been removed from your favorite games<div class="small text-muted mt-1">${escapeHtml(dateStr)}</div></div>`);
+
+                window.dispatchEvent(new CustomEvent('favorite-updated', { detail: { apiId, status: 'unfavorited' } }));
             }
         } catch (err) {
             console.warn('Failed to toggle favorite', err);
@@ -367,7 +383,6 @@ async function fetchCompetitionData() {
             allMatches = data.matches || [];
             currentFilteredMatches = [...allMatches];
 
-            // Ensure requested page (from URL) is within available range for this competition
             const totalPages = Math.max(1, Math.ceil(currentFilteredMatches.length / itemsPerPage));
             if (currentPage > totalPages) { currentPage = totalPages; updateUrl(currentPage); }
             
@@ -474,7 +489,9 @@ function renderMatches(matches) {
 
         const idStr = String(match.id);
         const starred = favoritesSet.has(idStr);
-        const starHtml = `<button class="btn btn-link p-0 favorite-btn" data-game-id="${idStr}" data-home="${encodeURIComponent(homeName)}" data-away="${encodeURIComponent(awayName)}" data-date="${encodeURIComponent(match.utcDate)}" aria-label="Favorite"><span class="favorite-icon ${starred ? 'favorited' : ''}">${starred ? '★' : '☆'}</span></button>`;
+        const homeLogo = match.homeTeam.crest || getTeamIcon(match.homeTeam.name);
+        const awayLogo = match.awayTeam.crest || getTeamIcon(match.awayTeam.name);
+        const starHtml = `<button class="btn btn-link p-0 favorite-btn" data-game-id="${idStr}" data-home="${encodeURIComponent(homeName)}" data-away="${encodeURIComponent(awayName)}" data-home-logo="${encodeURIComponent(homeLogo)}" data-away-logo="${encodeURIComponent(awayLogo)}" data-date="${encodeURIComponent(match.utcDate)}" aria-label="Favorite"><span class="favorite-icon ${starred ? 'favorited' : ''}">${starred ? '★' : '☆'}</span></button>`;
 
         matchCard.innerHTML = `
             <div class="card-body p-3">
@@ -573,13 +590,38 @@ function clearFilters() {
 function initializeDatepicker() {
     $('#date-filter').datepicker({
         dateFormat: 'yy-mm-dd',
-        showAnim: "fadeIn",
+        showAnim: 'fadeIn',
+        showOtherMonths: true,
+        selectOtherMonths: true,
+        changeMonth: true,
+        changeYear: true,
+        showButtonPanel: true,
+        firstDay: 1,
+        beforeShow: function(input, inst) {
+            setTimeout(function() {
+                inst.dpDiv.addClass('custom-datepicker');
+            }, 0);
+        },
         onSelect: function(dateText) {
             selectedDate = new Date(dateText);
             document.getElementById('date-filter-display').textContent = `Filtering: ${selectedDate.toDateString()}`;
             document.getElementById('date-filter-display').classList.remove('d-none');
             applyFilters(true);
         }
+    });
+
+    // Open datepicker when input or calendar icon is clicked
+    $('#date-filter').on('click', function() { $(this).datepicker('show'); });
+    $('.datepicker-toggle').on('click', function() { $('#date-filter').datepicker('show'); });
+
+    // Make the "Today" button set today's date and apply filter
+    $(document).on('click', '.ui-datepicker-buttonpane .ui-datepicker-current', function() {
+        const today = $.datepicker.formatDate('yy-mm-dd', new Date());
+        $('#date-filter').datepicker('setDate', today);
+        selectedDate = new Date(today);
+        document.getElementById('date-filter-display').textContent = `Filtering: ${selectedDate.toDateString()}`;
+        document.getElementById('date-filter-display').classList.remove('d-none');
+        applyFilters(true);
     });
 }
 
@@ -624,12 +666,49 @@ function manageTickets(id) { window.location.href = `/admin/tickets/${id}`; }
 
 #ui-datepicker-div {
     border: none !important;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.18) !important;
     border-radius: 12px !important;
-    padding: 10px !important;
+    padding: 8px !important;
     background: #fff !important;
     z-index: 1000 !important;
 }
+
+
+.custom-datepicker .ui-datepicker-header {
+    background: linear-gradient(90deg, #38003c 0%, #00ff85 100%);
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    box-shadow: 0 6px 18px rgba(56,0,60,0.12);
+}
+.custom-datepicker .ui-datepicker-title { font-weight:700; font-size:1rem; }
+.custom-datepicker .ui-datepicker-prev, .custom-datepicker .ui-datepicker-next { color: white; opacity: 0.95; }
+.custom-datepicker .ui-datepicker-prev span, .custom-datepicker .ui-datepicker-next span { font-size: 1.1rem; }
+.custom-datepicker .ui-datepicker-calendar td a {
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: inline-block;
+    color: #333;
+}
+.custom-datepicker .ui-datepicker-calendar td a:hover {
+    background: rgba(56,0,60,0.06);
+    color: #38003c;
+}
+.custom-datepicker .ui-datepicker-calendar td a.ui-state-active {
+    background: linear-gradient(90deg,#38003c,#00ff85);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+}
+.custom-datepicker .ui-datepicker-buttonpane .ui-datepicker-current, .custom-datepicker .ui-datepicker-buttonpane .ui-datepicker-close {
+    border-radius:6px;
+    padding:6px 10px;
+    margin:4px;
+    background:#f8f9fa;
+    border: none;
+    cursor:pointer;
+}
+.custom-datepicker .ui-datepicker-buttonpane { text-align:right; padding-top:8px; }
 
 .toast-notification{
     transition: opacity 0.3s ease;

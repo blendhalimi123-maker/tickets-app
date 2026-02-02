@@ -12,7 +12,12 @@ class Game extends Model
     protected $fillable = [
         'api_game_id',
         'title',
+        'home_team',
+        'away_team',
+        'home_team_logo',
+        'away_team_logo',
         'match_date',
+        'match_time',
         'total_tickets',
         'tickets_sold',
     ];
