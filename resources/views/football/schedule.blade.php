@@ -366,6 +366,10 @@ async function fetchCompetitionData() {
         if (data.success) {
             allMatches = data.matches || [];
             currentFilteredMatches = [...allMatches];
+
+            // Ensure requested page (from URL) is within available range for this competition
+            const totalPages = Math.max(1, Math.ceil(currentFilteredMatches.length / itemsPerPage));
+            if (currentPage > totalPages) { currentPage = totalPages; updateUrl(currentPage); }
             
             updateCompetitionCards();
             updateCompetitionTitle();
