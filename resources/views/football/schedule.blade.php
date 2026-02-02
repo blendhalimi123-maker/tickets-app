@@ -206,7 +206,7 @@ const subscriptions = {};
 
 async function loadFavorites() {
     try {
-        const res = await fetch('/favorites');
+        const res = await fetch('/favorites', { headers: { 'Accept': 'application/json' } });
         if (!res.ok) return;
         const json = await res.json();
         favoritesSet = new Set((json.favorites || []).map(String));

@@ -9,12 +9,20 @@ use App\Models\Game;
 class FavoriteController extends Controller
 {
     
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
         
         if (!$user) {
+            if ($request->wantsJson()) {
+                return response()->json(['favorites' => []]);
+            }
             return redirect()->route('login');
+        }
+
+        if ($request->wantsJson()) {
+            $favorites = $user->favorites()->pluck('api_game_id');
+            return response()->json(['favorites' => $favorites]);
         }
 
         $favorites = $user->favorites()->get();
