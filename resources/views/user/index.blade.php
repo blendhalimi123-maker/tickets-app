@@ -163,9 +163,9 @@
                     <h3 class="card-title">Events</h3>
                 </div>
                 <p class="card-description">Stay updated with latest football events, tournaments, and promotions.</p>
-                <button class="btn-action btn-secondary" onclick="showEvents()">
+                <a href="{{ route('football.events') }}" class="btn-action btn-secondary">
                     <i class="bi bi-megaphone"></i> Explore
-                </button>
+                </a>
             </div>
 
             <div class="card-modern flex-grow-1">
