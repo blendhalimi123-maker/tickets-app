@@ -79,6 +79,10 @@ Route::get('/team-schedule', function () {
     return view('football.schedule');
 })->name('football.schedule');
 
+// SportMonks proxy for in-play events
+use App\Http\Controllers\SportMonksController;
+Route::get('/api/sportmonks/inplay', [SportMonksController::class, 'inplay'])->name('api.sportmonks.inplay');
+
 Route::get('/dashboard-events', function () {
     return view('football.events');
 })->name('football.events');

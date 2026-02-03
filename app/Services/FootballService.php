@@ -92,4 +92,33 @@ class FootballService
 
         return $response->successful() ? ['matches' => $response->json()['matches'] ?? []] : ['matches' => []];
     }
+
+    /**
+     * Fetch in-play/live events from SportMonks (alternative provider).
+     * Uses SPORTMONKS_API_TOKEN from env and caches results.
+     */
+    public function getSportMonksInplay($cacheMinutes = 1)
+    {
+        $token = env('SPORTMONKS_API_TOKEN');
+        if (!$token) {
+            \Log::warning('SPORTMONKS_API_TOKEN not configured');
+            return ['data' => []];
+        }
+
+        return Cache::remember('sportmonks_inplay', $cacheMinutes * 60, function () use ($token) {
+            $base = 'https://api.sportmonks.com/v3/football/livescores/inplay';
+            $response = Http::withOptions(['verify' => false])
+                ->get($base, [
+                    'api_token' => $token,
+                    'include' => 'participants,scores,periods,events,venue,league'
+                ]);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            \Log::error('SportMonks API error: ' . $response->status());
+            return ['data' => []];
+        });
+    }
 }

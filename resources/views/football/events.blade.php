@@ -45,70 +45,66 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const API_KEY = '76fa58e62936408ca8d3dbb65e50c517';
-        const LEAGUE_CODE = 'PL'; 
-        const URL = `https://api.football-data.org/v4/competitions/${LEAGUE_CODE}/standings`;
+        // Fetch SportMonks in-play events from backend proxy
+        const URL = '/api/sportmonks/inplay';
 
-        async function loadStandings() {
+        async function loadEvents() {
             try {
-                const response = await fetch(URL, {
-                    method: 'GET',
-                    headers: {
-                        'X-Auth-Token': API_KEY
-                    }
-                });
+                const res = await fetch(URL, { credentials: 'same-origin' });
+                if (!res.ok) throw new Error('Network response was not ok');
+                const data = await res.json();
 
-                if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.status}`);
+                // SportMonks wraps results under `data` key
+                const events = data.data || [];
+                if (!events.length) {
+                    document.getElementById('standings-body').innerHTML = `
+                        <tr><td colspan="8" class="text-center py-5">No live events right now.</td></tr>`;
+                    return;
                 }
 
-                const data = await response.json();
-                
-                document.getElementById('league-name').innerText = data.competition.name;
-                
-                const tableData = data.standings[0].table;
-                renderTable(tableData);
-                
+                renderEvents(events);
                 document.getElementById('update-time').innerText = new Date().toLocaleTimeString();
-
-            } catch (error) {
-                console.error("API Fetch Error:", error);
+            } catch (err) {
+                console.error('Failed to load SportMonks events', err);
                 document.getElementById('standings-body').innerHTML = `
                     <tr>
                         <td colspan="8" class="text-center text-danger">
-                            <i class="fas fa-exclamation-triangle"></i> 
-                            Failed to load data. You may have reached your 10-request-per-minute limit.
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Failed to load live events.
                         </td>
                     </tr>`;
             }
         }
 
-        function renderTable(teams) {
+        function renderEvents(items) {
             const tbody = document.getElementById('standings-body');
             let html = '';
 
-            teams.forEach(item => {
+            items.forEach(ev => {
+                const home = (ev.participants || []).find(p => p.type === 'home') || ev.localTeam || {};
+                const away = (ev.participants || []).find(p => p.type === 'visitor') || ev.visitorTeam || {};
+                const score = (ev.scores && ev.scores.ft) ? `${ev.scores.ft.home || 0} - ${ev.scores.ft.away || 0}` : (ev.time || ev.status || '0 - 0');
+                const league = ev.league ? ev.league.data?.name || '' : (ev.league?.name || '');
+
                 html += `
                     <tr>
-                        <td class="fw-bold">${item.position}</td>
+                        <td class="fw-bold">${league}</td>
                         <td>
-                            <img src="${item.team.crest}" alt="${item.team.name}" style="width: 25px; margin-right: 10px;">
-                            <span class="fw-bold">${item.team.name}</span>
+                            <img src="${home.image_path || ''}" style="width:25px; margin-right:8px;" onerror="this.style.display='none'">${home.name || home.short_code || 'Home'}
                         </td>
-                        <td class="text-center">${item.playedGames}</td>
-                        <td class="text-center text-success">${item.won}</td>
-                        <td class="text-center text-warning">${item.draw}</td>
-                        <td class="text-center text-danger">${item.lost}</td>
-                        <td class="text-center">${item.goalDifference > 0 ? '+' + item.goalDifference : item.goalDifference}</td>
-                        <td class="text-center"><strong>${item.points}</strong></td>
-                    </tr>
-                `;
+                        <td class="text-center"><strong>${score}</strong></td>
+                        <td>
+                            ${away.name || away.short_code || 'Away'}
+                            <img src="${away.image_path || ''}" style="width:25px; margin-left:8px;" onerror="this.style.display='none'">
+                        </td>
+                        <td class="text-end small text-muted">${ev.time || ev.status || ''}</td>
+                    </tr>`;
             });
 
             tbody.innerHTML = html;
         }
 
-        loadStandings();
+        loadEvents();
     });
 </script>
 @endsection
