@@ -88,14 +88,6 @@
 
             async function loadEvents() {
                 try {
-                    if (isAuthenticated) {
-                        const fres = await fetch(favoritesUrl, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
-                        if (fres.ok) {
-                            const fjson = await fres.json();
-                            favoritesSet = new Set((fjson.favorites || []).map(String));
-                        }
-                    }
-
                     const res = await fetch(standingsUrl, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
                     if (!res.ok) throw new Error('Network response was not ok');
                     const data = await res.json();
@@ -171,6 +163,148 @@
                 }
             }
 
+            function escapeAttr(s) {
+                return String(s || '').replace(/"/g, '&quot;').replace(/'/g, "&#39;");
+            }
+
+            function teamStarHtml(teamId, teamName, crest) {
+                const id = teamId == null ? '' : String(teamId);
+                const isFav = favoritesSet.has(id);
+                const cls = isFav ? 'text-warning' : 'text-muted';
+                return ` <a href="#" class="team-fav" data-team-id="${escapeAttr(id)}" data-team-name="${escapeAttr(teamName)}" data-crest="${escapeAttr(crest)}" title="Toggle favorite">
+                            <i class="fas fa-star ${cls}"></i>
+                        </a>`;
+            }
+
+            const subscriptions = {};
+            const teamSubscriptions = {};
+            function subscribeToTeamChannel(teamId) {
+                if (typeof window.Echo === 'undefined') return;
+                if (!teamId) return;
+                if (teamSubscriptions[teamId]) return;
+                try {
+                    teamSubscriptions[teamId] = window.Echo.private(`team.${teamId}`)
+                        .listen('TeamUpdated', (e) => {
+                            showToast(e.message || 'Update for your favorite team');
+                        });
+                } catch (err) {
+                    console.warn('Subscribe to team channel failed', err);
+                }
+            }
+
+            function unsubscribeFromTeamChannel(teamId) {
+                if (typeof window.Echo === 'undefined') return;
+                if (!teamId) return;
+                if (!teamSubscriptions[teamId]) return;
+                try {
+                    window.Echo.leave(`team.${teamId}`);
+                    delete teamSubscriptions[teamId];
+                } catch (err) {
+                    console.warn('Unsubscribe from team channel failed', err);
+                }
+            }
+            function subscribeToGameChannel(apiId) {
+                if (typeof window.Echo === 'undefined') return;
+                if (subscriptions[apiId]) return;
+                try {
+                    subscriptions[apiId] = window.Echo.private(`game.${apiId}`)
+                        .listen('GameTicketSold', (e) => {
+                            showToast(e.message || 'Update for this match');
+                        });
+                } catch (err) {
+                    console.warn('Subscribe failed', err);
+                }
+            }
+
+            function unsubscribeFromGameChannel(apiId) {
+                if (typeof window.Echo === 'undefined') return;
+                if (!subscriptions[apiId]) return;
+                try {
+                    window.Echo.leave(`game.${apiId}`);
+                    delete subscriptions[apiId];
+                } catch (err) {
+                    console.warn('Unsubscribe failed', err);
+                }
+            }
+
+            function showToast(html, { duration = 4000 } = {}) {
+                const toast = document.createElement('div');
+                toast.className = 'toast-notification bg-dark text-white p-3 rounded shadow-sm';
+                toast.style.position = 'fixed';
+                toast.style.right = '20px';
+                toast.style.bottom = '20px';
+                toast.style.zIndex = 9999;
+                toast.style.opacity = '0';
+                toast.style.maxWidth = '320px';
+                toast.innerHTML = html;
+
+                toast.style.transform = 'translateY(8px)';
+                setTimeout(() => toast.style.transform = 'translateY(0)', 100);
+                document.body.appendChild(toast);
+                setTimeout(() => toast.style.opacity = '1', 50);
+                setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, duration);
+            }
+
+            async function loadFavoriteTeams() {
+                if (!isAuthenticated) return;
+                try {
+                    const r = await fetch(favoritesUrl, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
+                    if (!r.ok) return;
+                    const j = await r.json();
+                    favoritesSet = new Set((j.favorites || []).map(String));
+                    // subscribe to team channels for websocket notifications
+                    for (const id of favoritesSet) {
+                        subscribeToTeamChannel(id);
+                    }
+                } catch (e) {
+                    console.warn('Failed to load favorite teams', e);
+                }
+            }
+
+            async function toggleTeamFav(teamId, name, crest, el) {
+                if (!teamId) return;
+                try {
+                    const res = await fetch(`/favorite-teams/${teamId}`, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'X-CSRF-TOKEN': csrf,
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name: decodeURIComponent(name || ''), crest: decodeURIComponent(crest || '') })
+                    });
+                    if (!res.ok) throw new Error('Network response not ok');
+                    const j = await res.json();
+                    if (j.status === 'favorited') {
+                        favoritesSet.add(String(teamId));
+                        subscribeToTeamChannel(teamId);
+                        el.classList.remove('text-muted'); el.classList.add('text-warning');
+                        showToast(`<strong>${escapeHtml(decodeURIComponent(name || ''))}</strong> added to favorite teams`);
+                        window.dispatchEvent(new CustomEvent('favorite-updated', { detail: { teamId: teamId, status: 'favorited', team: j.team || null } }));
+                    } else if (j.status === 'unfavorited') {
+                        favoritesSet.delete(String(teamId));
+                        unsubscribeFromTeamChannel(teamId);
+                        el.classList.remove('text-warning'); el.classList.add('text-muted');
+                        showToast(`<strong>${escapeHtml(decodeURIComponent(name || ''))}</strong> removed from favorite teams`);
+                        window.dispatchEvent(new CustomEvent('favorite-updated', { detail: { teamId: teamId, status: 'unfavorited' } }));
+                    }
+                } catch (e) {
+                    console.warn('Failed to toggle team favorite', e);
+                }
+            }
+
+            document.addEventListener('click', function(ev) {
+                const a = ev.target.closest && ev.target.closest('.team-fav');
+                if (!a) return;
+                ev.preventDefault();
+                const teamId = a.dataset.teamId;
+                const name = a.dataset.teamName;
+                const crest = a.dataset.crest;
+                const icon = a.querySelector('i');
+                toggleTeamFav(teamId, name, crest, icon);
+            });
+
             function renderEvents(items) {
                 const tbody = document.getElementById('standings-body');
                 let html = '';
@@ -180,16 +314,17 @@
                     const away = (ev.participants || []).find(p => p.type === 'visitor') || ev.visitorTeam || {};
                     const score = (ev.scores && ev.scores.ft) ? `${ev.scores.ft.home || 0} - ${ev.scores.ft.away || 0}` : (ev.time || ev.status || '0 - 0');
                     const league = ev.league ? ev.league.data?.name || '' : (ev.league?.name || '');
-
+                    const hid = home.id || home.team_id || home.data?.id || home._id || home.id_team || '';
+                    const aid = away.id || away.team_id || away.data?.id || away._id || away.id_team || '';
                     html += `
                         <tr>
                             <td class="fw-bold">${league}</td>
                             <td>
-                                <img src="${home.image_path || ''}" style="width:25px; margin-right:8px;" onerror="this.style.display='none'">${home.name || home.short_code || 'Home'}
+                                <img src="${home.image_path || ''}" style="width:25px; margin-right:8px;" onerror="this.style.display='none'">${home.name || home.short_code || 'Home'}${teamStarHtml(hid, home.name || '', home.image_path || '')}
                             </td>
                             <td class="text-center"><strong>${score}</strong></td>
                             <td>
-                                ${away.name || away.short_code || 'Away'}
+                                ${away.name || away.short_code || 'Away'}${teamStarHtml(aid, away.name || '', away.image_path || '')}
                                 <img src="${away.image_path || ''}" style="width:25px; margin-left:8px;" onerror="this.style.display='none'">
                             </td>
                             <td class="text-end small text-muted">${ev.time || ev.status || ''}</td>
@@ -204,8 +339,8 @@
                 let html = '';
 
                 matches.forEach((m, idx) => {
-                    const home = m.homeTeam || m.homeTeam || (m.homeTeam && m.homeTeam.name) || (m.teams && m.teams.home) || {};
-                    const away = m.awayTeam || m.awayTeam || (m.awayTeam && m.awayTeam.name) || (m.teams && m.teams.away) || {};
+                    const home = m.homeTeam || (m.teams && m.teams.home) || {};
+                    const away = m.awayTeam || (m.teams && m.teams.away) || {};
                     const utc = m.utcDate || m.match_date || m.date || null;
                     const when = utc ? new Date(utc).toLocaleString() : (m.status || 'TBD');
 
@@ -213,11 +348,11 @@
                         <tr>
                             <td class="fw-bold">${idx + 1}</td>
                             <td>
-                                ${home.name || home.shortName || (home.home && home.home.name) || 'Home'}
+                                ${home.name || home.shortName || 'Home'}${teamStarHtml(home.id || home.apiTeamId || home.team_id || '', home.name || home.shortName || '', home.crest || home.logo || '')}
                             </td>
                             <td class="text-center"><strong>${m.score && m.score.fullTime ? ((m.score.fullTime.homeTeam || 0) + ' - ' + (m.score.fullTime.awayTeam || 0)) : 'vs'}</strong></td>
                             <td>
-                                ${away.name || away.shortName || (away.away && away.away.name) || 'Away'}
+                                ${away.name || away.shortName || 'Away'}${teamStarHtml(away.id || away.apiTeamId || away.team_id || '', away.name || away.shortName || '', away.crest || away.logo || '')}
                             </td>
                             <td class="text-end small text-muted">${when}</td>
                         </tr>`;
@@ -291,17 +426,19 @@
                     <tr><td colspan="8"><hr></td></tr>`;
 
                 matches.forEach((m) => {
-                    const home = (m.homeTeam && m.homeTeam.name) || (m.homeTeam && m.homeTeam.shortName) || (m.home && m.home.name) || 'Home';
-                    const away = (m.awayTeam && m.awayTeam.name) || (m.awayTeam && m.awayTeam.shortName) || (m.away && m.away.name) || 'Away';
+                    const homeObj = m.homeTeam || (m.home || {});
+                    const awayObj = m.awayTeam || (m.away || {});
+                    const home = homeObj.name || homeObj.shortName || 'Home';
+                    const away = awayObj.name || awayObj.shortName || 'Away';
                     const utc = m.utcDate || m.match_date || m.date || null;
                     const when = utc ? new Date(utc).toLocaleString() : (m.status || 'TBD');
 
                     html += `
                         <tr class="table-secondary">
                             <td></td>
-                            <td>${home}</td>
+                            <td>${home}${teamStarHtml(homeObj.id || homeObj.apiTeamId || homeObj.team_id || '', home, homeObj.crest || homeObj.logo || '')}</td>
                             <td class="text-center"><strong>vs</strong></td>
-                            <td>${away}</td>
+                            <td>${away}${teamStarHtml(awayObj.id || awayObj.apiTeamId || awayObj.team_id || '', away, awayObj.crest || awayObj.logo || '')}</td>
                             <td class="text-end small text-muted">${when}</td>
                             <td></td>
                             <td></td>
@@ -339,8 +476,15 @@
                         body: JSON.stringify({ name, crest })
                     });
 
-                    if (!res.ok) throw new Error('Network response was not ok');
-                    const json = await res.json();
+                    const text = await res.text().catch(() => '');
+                    let json = {};
+                    try { json = text ? JSON.parse(text) : {}; } catch (e) { json = {}; }
+
+                    if (!res.ok) {
+                        console.error('Favorite-team toggle failed', res.status, text);
+                        try { showToast('Failed to toggle favorite team'); } catch (e) {}
+                        return;
+                    }
 
                     if (json.status === 'favorited') {
                         favoritesSet.add(String(teamId));
@@ -363,7 +507,7 @@
                 renderStandings(tableRows);
             });
 
-            loadEvents();
+            loadFavoriteTeams().then(loadEvents);
         });
     </script>
 
