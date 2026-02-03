@@ -20,6 +20,8 @@ use App\Models\Ticket;
 use App\Mail\AdminNewSaleMail;
 use App\Mail\UserTicketMail;
 use App\Http\Controllers\SportMonksController;
+use App\Http\Controllers\TeamFixturesController;
+use App\Http\Controllers\MatchController;
 
 
 Route::get('/', function () {
@@ -88,6 +90,9 @@ Route::get('/api/sportmonks/standings/{roundId}', [SportMonksController::class, 
 Route::get('/dashboard-events', function () {
     return view('football.events');
 })->name('football.events');
+
+Route::get('/team/{teamId}/fixtures', [TeamFixturesController::class, 'show'])->name('team.fixtures');
+Route::get('/match/{matchId}', [MatchController::class, 'show'])->name('match.show');
 
 Route::get('/favorite-teams', [FavoriteTeamController::class, 'index'])->name('favorite-teams.index');
 

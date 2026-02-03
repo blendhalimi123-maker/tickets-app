@@ -1,1 +1,6 @@
 /* Custom application styles */
+
+#teamInfoModal .team-next-action-btn {
+    font-weight: 700;
+    border-radius: 10px;
+}

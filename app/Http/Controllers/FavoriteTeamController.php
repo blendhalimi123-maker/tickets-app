@@ -21,11 +21,45 @@ class FavoriteTeamController extends Controller
         $user = Auth::user();
 
         if (!$user) {
-            return response()->json(['favorites' => []]);
+            if ($request->wantsJson()) {
+                return response()->json(['favorites' => []]);
+            }
+
+            return view('favorite-teams.index', ['favorites' => [], 'teams' => [], 'teamInfos' => []]);
         }
 
         $favorites = $user->favoriteTeams()->pluck('api_team_id');
-        return response()->json(['favorites' => $favorites]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['favorites' => $favorites]);
+        }
+
+        $teams = \App\Models\Team::whereIn('api_team_id', $favorites)->get();
+        $teamInfos = [];
+        foreach ($teams as $team) {
+            $nextMatch = $this->footballService->getTeamNextMatch($team->api_team_id);
+            $teamInfo = $this->footballService->getTeamInfo($team->api_team_id) ?: [];
+
+            $website = null;
+            if (!empty($teamInfo['website'])) {
+                $website = $teamInfo['website'];
+            } elseif (!empty($teamInfo['address']) && filter_var($teamInfo['address'], FILTER_VALIDATE_URL)) {
+                $website = $teamInfo['address'];
+            }
+
+            $teamInfos[] = [
+                'team' => $team,
+                'nextMatch' => $nextMatch,
+                'teamInfo' => $teamInfo,
+                'website' => $website,
+            ];
+        }
+
+        return view('favorite-teams.index', [
+            'favorites' => $favorites,
+            'teams' => $teams,
+            'teamInfos' => $teamInfos,
+        ]);
     }
 
     public function toggle(Request $request, $apiTeamId)
@@ -53,7 +87,25 @@ class FavoriteTeamController extends Controller
             $user->favoriteTeam($apiTeamId);
             $team->refresh();
 
-            $teamInfo = $this->footballService->getTeamInfo($apiTeamId);
+            $teamInfo = $this->footballService->getTeamInfo($apiTeamId) ?: [];
+
+            $scorersData = $this->footballService->getCompetitionScorers('PD');
+            $scorersList = $scorersData['scorers'] ?? ($scorersData['data'] ?? []);
+            $topScorerNow = null;
+            foreach ($scorersList as $s) {
+                $teamObj = $s['team'] ?? $s['team'] ?? null;
+                $teamIdField = $teamObj['id'] ?? ($teamObj['teamId'] ?? null);
+                if ($teamIdField && (string)$teamIdField === (string)$apiTeamId) {
+                    $topScorerNow = $s;
+                    break;
+                }
+            }
+
+            $nextMatch = $this->footballService->getTeamNextMatch($apiTeamId);
+
+            $teamInfo['topScorerNow'] = $topScorerNow;
+            $teamInfo['topScorerAllTime'] = null;
+            $teamInfo['nextMatch'] = $nextMatch;
 
             return response()->json([
                 'status' => 'favorited',

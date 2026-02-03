@@ -57,11 +57,15 @@
             <div class="mt-3 standings-legend">
                 <div class="card border-0 mt-2">
                     <div class="card-body p-3 small text-muted">
-                        <div class="mb-1"><span class="legend-box legend-cl"></span> Promotion - Champions League (League phase)</div>
-                        <div class="mb-1"><span class="legend-box legend-el"></span> Promotion - Europa League (League phase)</div>
-                        <div class="mb-1"><span class="legend-box legend-conf"></span> Promotion - Conference League (Qualification)</div>
+                        <div class="mb-1"><span class="legend-box legend-cl"></span> Promotion - Champions League (League
+                            phase)</div>
+                        <div class="mb-1"><span class="legend-box legend-el"></span> Promotion - Europa League (League
+                            phase)</div>
+                        <div class="mb-1"><span class="legend-box legend-conf"></span> Promotion - Conference League
+                            (Qualification)</div>
                         <div class="mb-1"><span class="legend-box legend-rel"></span> Relegation - LaLiga2</div>
-                        <div class="mt-2 small text-muted">If points are tied at the end of the competition, head-to-head matches will be the tie-breaker.</div>
+                        <div class="mt-2 small text-muted">If points are tied at the end of the competition, head-to-head
+                            matches will be the tie-breaker.</div>
                     </div>
                 </div>
             </div>
@@ -101,6 +105,21 @@
 
             let tableRows = [];
             let favoritesSet = new Set();
+            const TeamFavorites = window.TeamFavorites || null;
+
+            function syncFavoritesFromStorage() {
+                try {
+                    if (TeamFavorites?.getFavoriteSet) {
+                        favoritesSet = TeamFavorites.getFavoriteSet();
+                        return;
+                    }
+                    const raw = window.localStorage?.getItem('favorite_teams_v1');
+                    const parsed = raw ? JSON.parse(raw) : [];
+                    favoritesSet = new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+                } catch (e) {
+                    favoritesSet = new Set();
+                }
+            }
 
             function escapeHtml(unsafe) {
                 return String(unsafe)
@@ -130,6 +149,7 @@
                     tableRows = Array.isArray(data.table) ? data.table : (Array.isArray(data.standings) ? data.standings : []);
                     renderStandings(tableRows);
                     document.getElementById('update-time').textContent = new Date().toLocaleString();
+                    return;
 
                     const events = data.data || [];
                     if (!events.length) {
@@ -179,7 +199,7 @@
                         }
 
                         document.getElementById('standings-body').innerHTML = `
-                            <tr><td colspan="8" class="text-center py-5">No live events right now.</td></tr>`;
+                                <tr><td colspan="8" class="text-center py-5">No live events right now.</td></tr>`;
                         return;
                     }
 
@@ -187,12 +207,12 @@
                 } catch (err) {
                     console.error('Load error:', err);
                     document.getElementById('standings-body').innerHTML = `
-                        <tr>
-                            <td colspan="8" class="text-center text-danger">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                Failed to load standings.
-                            </td>
-                        </tr>`;
+                            <tr>
+                                <td colspan="8" class="text-center text-danger">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Failed to load standings.
+                                </td>
+                            </tr>`;
                 }
             }
 
@@ -205,8 +225,8 @@
                 const isFav = favoritesSet.has(id);
                 const cls = isFav ? 'text-warning' : 'text-muted';
                 return ` <a href="#" class="team-fav" data-team-id="${escapeAttr(id)}" data-team-name="${escapeAttr(teamName)}" data-crest="${escapeAttr(crest)}" title="Toggle favorite">
-                            <i class="fas fa-star ${cls}"></i>
-                        </a>`;
+                                <i class="fas fa-star ${cls}"></i>
+                            </a>`;
             }
 
             const subscriptions = {};
@@ -218,7 +238,7 @@
             function unsubscribeFromTeamChannel(teamId) {
                 return;
             }
-            
+
             function subscribeToGameChannel(apiId) {
                 return;
             }
@@ -246,12 +266,16 @@
             }
 
             async function loadFavoriteTeams() {
+                syncFavoritesFromStorage();
                 if (!isAuthenticated) return;
                 try {
                     const r = await fetch(favoritesUrl, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
                     if (!r.ok) return;
                     const j = await r.json();
                     favoritesSet = new Set((j.favorites || []).map(String));
+                    try {
+                        TeamFavorites?.writeFavoriteTeamIds?.([...favoritesSet]);
+                    } catch (e) { }
                     for (const id of favoritesSet) {
                         subscribeToTeamChannel(id);
                     }
@@ -265,16 +289,36 @@
                     console.warn('No team ID provided');
                     return;
                 }
-                
-                if (!isAuthenticated) {
-                    alert('Please log in to favorite teams');
-                    return;
-                }
-                
-                console.log('Toggling favorite for team:', teamId, name);
-                
+
+                const idStr = String(teamId);
+                const nowFav = !favoritesSet.has(idStr);
                 try {
-                    const res = await fetch(`/favorite-teams/${teamId}`, {
+                    TeamFavorites?.setFavorited?.(idStr, nowFav);
+                } catch (e) { }
+                syncFavoritesFromStorage();
+                if (nowFav) {
+                    subscribeToTeamChannel(idStr);
+                } else {
+                    unsubscribeFromTeamChannel(idStr);
+                }
+
+                try {
+                    el?.classList?.toggle('text-warning', nowFav);
+                    el?.classList?.toggle('text-muted', !nowFav);
+                } catch (e) { }
+
+                try {
+                    if (nowFav) {
+                        showToast(`<strong>${escapeHtml(decodeURIComponent(name || ''))}</strong> added to favorite teams`);
+                    } else {
+                        showToast(`<strong>${escapeHtml(decodeURIComponent(name || ''))}</strong> removed from favorite teams`);
+                    }
+                } catch (e) { }
+
+                if (!isAuthenticated) return;
+
+                try {
+                    await fetch(`/favorite-teams/${teamId}`, {
                         method: 'POST',
                         credentials: 'same-origin',
                         headers: {
@@ -284,58 +328,26 @@
                         },
                         body: JSON.stringify({ name: decodeURIComponent(name || ''), crest: decodeURIComponent(crest || '') })
                     });
-                    
-                    if (!res.ok) {
-                        const errorText = await res.text();
-                        console.error('Server error:', res.status, errorText);
-                        throw new Error(`Network response not ok: ${res.status}`);
-                    }
-                    
-                    const j = await res.json();
-                    console.log('Server response:', j);
-                    
-                    if (j.status === 'favorited') {
-                        favoritesSet.add(String(teamId));
-                        subscribeToTeamChannel(teamId);
-                        el.classList.remove('text-muted'); el.classList.add('text-warning');
-                        showToast(`<strong>${escapeHtml(decodeURIComponent(name || ''))}</strong> added to favorite teams`);
-                        
-                        console.log('Team info:', j.teamInfo);
-                        if (j.teamInfo) {
-                            showTeamInfoModal(j.teamInfo);
-                        } else {
-                            console.warn('No team info returned from server');
-                        }
-                        
-                        window.dispatchEvent(new CustomEvent('favorite-updated', { detail: { teamId: teamId, status: 'favorited', team: j.team || null } }));
-                    } else if (j.status === 'unfavorited') {
-                        favoritesSet.delete(String(teamId));
-                        unsubscribeFromTeamChannel(teamId);
-                        el.classList.remove('text-warning'); el.classList.add('text-muted');
-                        showToast(`<strong>${escapeHtml(decodeURIComponent(name || ''))}</strong> removed from favorite teams`);
-                        window.dispatchEvent(new CustomEvent('favorite-updated', { detail: { teamId: teamId, status: 'unfavorited' } }));
-                    }
                 } catch (e) {
-                    console.error('Failed to toggle team favorite:', e);
-                    alert('Failed to toggle favorite. Please try again.');
+                    // keep localStorage as source of truth for UI
                 }
             }
 
             function showTeamInfoModal(teamInfo) {
                 console.log('Showing team info modal with data:', teamInfo);
-                
+
                 const modalEl = document.getElementById('teamInfoModal');
                 if (!modalEl) {
                     console.error('Modal element not found');
                     return;
                 }
-                
+
                 const content = document.getElementById('teamInfoContent');
                 if (!content) {
                     console.error('Modal content element not found');
                     return;
                 }
-                
+
                 if (!teamInfo) {
                     content.innerHTML = '<p class="text-muted">Team information not available.</p>';
                     const modal = new bootstrap.Modal(modalEl);
@@ -345,56 +357,109 @@
 
                 const team = teamInfo;
                 let html = '<div class="team-info-details">';
-                
+
                 if (team.crest) {
                     html += `<div class="text-center mb-4">
-                        <img src="${escapeHtml(team.crest)}" alt="${escapeHtml(team.name || 'Team')}" class="img-fluid" style="max-width: 120px; max-height: 120px;">
-                    </div>`;
+                            <img src="${escapeHtml(team.crest)}" alt="${escapeHtml(team.name || 'Team')}" class="img-fluid" style="max-width: 120px; max-height: 120px;">
+                        </div>`;
                 }
-                
+
                 html += `<h4 class="text-center mb-3 fw-bold">${escapeHtml(team.name || team.shortName || 'Unknown Team')}</h4>`;
-                
+
                 html += '<div class="row g-3">';
-                
+
                 if (team.shortName) {
                     html += `<div class="col-6"><strong>Short Name:</strong></div><div class="col-6">${escapeHtml(team.shortName)}</div>`;
                 }
-                
+
                 if (team.tla) {
                     html += `<div class="col-6"><strong>TLA:</strong></div><div class="col-6">${escapeHtml(team.tla)}</div>`;
                 }
-                
+
                 if (team.founded) {
                     html += `<div class="col-6"><strong>Founded:</strong></div><div class="col-6">${escapeHtml(String(team.founded))}</div>`;
                 }
-                
+
                 if (team.venue) {
                     html += `<div class="col-6"><strong>Stadium:</strong></div><div class="col-6">${escapeHtml(team.venue)}</div>`;
                 }
-                
+
                 if (team.address) {
                     html += `<div class="col-6"><strong>Address:</strong></div><div class="col-6">${escapeHtml(team.address)}</div>`;
                 }
-                
+
                 if (team.clubColors) {
                     html += `<div class="col-6"><strong>Club Colors:</strong></div><div class="col-6">${escapeHtml(team.clubColors)}</div>`;
                 }
-                
+
                 if (team.website) {
                     html += `<div class="col-12 mt-2"><a href="${escapeHtml(team.website)}" target="_blank" class="btn btn-sm btn-outline-primary w-100">
-                        <i class="fas fa-external-link-alt me-1"></i> Visit Official Website
-                    </a></div>`;
+                            <i class="fas fa-external-link-alt me-1"></i> Visit Official Website
+                        </a></div>`;
                 }
-                
+
+                const teamId = team.id != null ? String(team.id) : '';
+                const teamName = team.shortName || team.name || 'Team';
+                const shortName = team.shortName || '';
+                const tla = team.tla || '';
+
+                if (teamId) {
+                    html += `<div class="col-12 mt-2">
+                            <a class="btn btn-sm btn-outline-primary w-100 team-next-action-btn js-team-next-action d-none"
+                               href="/team/${encodeURIComponent(teamId)}/fixtures"
+                               data-team-id="${escapeHtml(teamId)}"
+                               data-team-name="${escapeHtml(teamName)}"
+                               data-team-short-name="${escapeHtml(shortName)}"
+                               data-team-tla="${escapeHtml(tla)}">
+                               See Next ${escapeHtml(teamName)} Games
+                            </a>
+                        </div>`;
+                }
+
+                html += '</div>';
+
+                html += '<hr>';
+                html += '<div class="row g-3">';
+                if (team.topScorerNow) {
+                    const ts = team.topScorerNow;
+                    const playerName = (ts.player && (ts.player.name || ts.player.fullName)) || (ts.playerName || ts.name) || 'Unknown';
+                    const goals = ts.numberOfGoals ?? ts.goals ?? (ts.score ?? '');
+                    html += `<div class="col-12"><strong>Top scorer (this season):</strong> ${escapeHtml(playerName)} ${goals ? ('— ' + escapeHtml(String(goals)) + ' goals') : ''}</div>`;
+                } else {
+                    html += `<div class="col-12"><strong>Top scorer (this season):</strong> N/A</div>`;
+                }
+
+                if (team.topScorerAllTime) {
+                    const ta = team.topScorerAllTime;
+                    const pname = (ta.player && (ta.player.name || ta.player.fullName)) || ta.name || 'Unknown';
+                    const pgoals = ta.goals ?? ta.numberOfGoals ?? '';
+                    html += `<div class="col-12"><strong>Top scorer (all time):</strong> ${escapeHtml(pname)} ${pgoals ? ('— ' + escapeHtml(String(pgoals)) + ' goals') : ''}</div>`;
+                } else {
+                    html += `<div class="col-12"><strong>Top scorer (all time):</strong> N/A</div>`;
+                }
+
+                if (team.nextMatch) {
+                    const nm = team.nextMatch;
+                    const home = nm.homeTeam || nm.home || nm.homeTeamInfo || {};
+                    const away = nm.awayTeam || nm.away || nm.awayTeamInfo || {};
+                    const homeName = home.name || home.shortName || home.teamName || home.team?.name || '';
+                    const awayName = away.name || away.shortName || away.teamName || away.team?.name || '';
+                    const utc = nm.utcDate || nm.match_date || nm.date || nm.kickoff || nm.start || '';
+                    const when = utc ? new Date(utc).toLocaleString() : (nm.status || 'TBD');
+                    html += `<div class="col-12"><strong>Next match:</strong> ${escapeHtml(homeName)} vs ${escapeHtml(awayName)} <span class="text-muted">(${escapeHtml(when)})</span></div>`;
+                } else {
+                    html += `<div class="col-12"><strong>Next match:</strong> N/A</div>`;
+                }
+
                 html += '</div></div>';
-                
+
                 content.innerHTML = html;
-                
+
                 const modal = new bootstrap.Modal(modalEl);
                 modal.show();
             }
 
-            document.addEventListener('click', function(ev) {
+            document.addEventListener('click', function (ev) {
                 const a = ev.target.closest && ev.target.closest('.team-fav');
                 if (!a) return;
                 ev.preventDefault();
@@ -417,18 +482,18 @@
                     const hid = home.id || home.team_id || home.data?.id || home._id || home.id_team || '';
                     const aid = away.id || away.team_id || away.data?.id || away._id || away.id_team || '';
                     html += `
-                        <tr>
-                            <td class="fw-bold">${league}</td>
-                            <td>
-                                <img src="${home.image_path || ''}" style="width:25px; margin-right:8px;" onerror="this.style.display='none'">${home.name || home.short_code || 'Home'}${teamStarHtml(hid, home.name || '', home.image_path || '')}
-                            </td>
-                            <td class="text-center"><strong>${score}</strong></td>
-                            <td>
-                                ${away.name || away.short_code || 'Away'}${teamStarHtml(aid, away.name || '', away.image_path || '')}
-                                <img src="${away.image_path || ''}" style="width:25px; margin-left:8px;" onerror="this.style.display='none'">
-                            </td>
-                            <td class="text-end small text-muted">${ev.time || ev.status || ''}</td>
-                        </tr>`;
+                            <tr>
+                                <td class="fw-bold">${league}</td>
+                                <td>
+                                    <img src="${home.image_path || ''}" style="width:25px; margin-right:8px;" onerror="this.style.display='none'">${home.name || home.short_code || 'Home'}${teamStarHtml(hid, home.name || '', home.image_path || '')}
+                                </td>
+                                <td class="text-center"><strong>${score}</strong></td>
+                                <td>
+                                    ${away.name || away.short_code || 'Away'}${teamStarHtml(aid, away.name || '', away.image_path || '')}
+                                    <img src="${away.image_path || ''}" style="width:25px; margin-left:8px;" onerror="this.style.display='none'">
+                                </td>
+                                <td class="text-end small text-muted">${ev.time || ev.status || ''}</td>
+                            </tr>`;
                 });
 
                 tbody.innerHTML = html;
@@ -445,17 +510,17 @@
                     const when = utc ? new Date(utc).toLocaleString() : (m.status || 'TBD');
 
                     html += `
-                        <tr>
-                            <td class="fw-bold">${idx + 1}</td>
-                            <td>
-                                ${home.name || home.shortName || 'Home'}${teamStarHtml(home.id || home.apiTeamId || home.team_id || '', home.name || home.shortName || '', home.crest || home.logo || '')}
-                            </td>
-                            <td class="text-center"><strong>${m.score && m.score.fullTime ? ((m.score.fullTime.homeTeam || 0) + ' - ' + (m.score.fullTime.awayTeam || 0)) : 'vs'}</strong></td>
-                            <td>
-                                ${away.name || away.shortName || 'Away'}${teamStarHtml(away.id || away.apiTeamId || away.team_id || '', away.name || away.shortName || '', away.crest || away.logo || '')}
-                            </td>
-                            <td class="text-end small text-muted">${when}</td>
-                        </tr>`;
+                            <tr>
+                                <td class="fw-bold">${idx + 1}</td>
+                                <td>
+                                    ${home.name || home.shortName || 'Home'}${teamStarHtml(home.id || home.apiTeamId || home.team_id || '', home.name || home.shortName || '', home.crest || home.logo || '')}
+                                </td>
+                                <td class="text-center"><strong>${m.score && m.score.fullTime ? ((m.score.fullTime.homeTeam || 0) + ' - ' + (m.score.fullTime.awayTeam || 0)) : 'vs'}</strong></td>
+                                <td>
+                                    ${away.name || away.shortName || 'Away'}${teamStarHtml(away.id || away.apiTeamId || away.team_id || '', away.name || away.shortName || '', away.crest || away.logo || '')}
+                                </td>
+                                <td class="text-end small text-muted">${when}</td>
+                            </tr>`;
                 });
 
                 tbody.innerHTML = html;
@@ -495,24 +560,24 @@
                     const fav = teamId && favoritesSet.has(teamId);
 
                     html += `
-                        <tr class="${rowClass(pos)}">
-                            <td class="pos-col"><span class="pos-pill">${escapeHtml(pos)}</span></td>
-                            <td>
-                                <div class="team-cell">
-                                    <button type="button" class="favorite-team-btn ${fav ? 'is-favorited' : ''}" data-team-id="${escapeHtml(teamId)}" data-team-name="${encodeURIComponent(teamName)}" data-team-crest="${encodeURIComponent(crest)}" aria-label="Favorite team">
-                                        <i class="${fav ? 'fas' : 'far'} fa-star"></i>
-                                    </button>
-                                    <img class="team-crest" src="${escapeHtml(crest)}" onerror="this.style.display='none'">
-                                    <span class="team-name">${escapeHtml(teamName)}</span>
-                                </div>
-                            </td>
-                            <td class="text-center">${escapeHtml(row.playedGames ?? '')}</td>
-                            <td class="text-center">${escapeHtml(row.won ?? '')}</td>
-                            <td class="text-center">${escapeHtml(row.draw ?? '')}</td>
-                            <td class="text-center">${escapeHtml(row.lost ?? '')}</td>
-                            <td class="text-center">${escapeHtml(row.goalDifference ?? '')}</td>
-                            <td class="text-center fw-bold">${escapeHtml(row.points ?? '')}</td>
-                        </tr>`;
+                            <tr class="${rowClass(pos)}">
+                                <td class="pos-col"><span class="pos-pill">${escapeHtml(pos)}</span></td>
+                                <td>
+                                    <div class="team-cell">
+                                        <button type="button" class="favorite-team-btn ${fav ? 'is-favorited' : ''}" data-team-id="${escapeHtml(teamId)}" data-team-name="${encodeURIComponent(teamName)}" data-team-crest="${encodeURIComponent(crest)}" aria-label="Favorite team">
+                                            <i class="${fav ? 'fas' : 'far'} fa-star"></i>
+                                        </button>
+                                        <img class="team-crest" src="${escapeHtml(crest)}" onerror="this.style.display='none'">
+                                        <span class="team-name">${escapeHtml(teamName)}</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">${escapeHtml(row.playedGames ?? '')}</td>
+                                <td class="text-center">${escapeHtml(row.won ?? '')}</td>
+                                <td class="text-center">${escapeHtml(row.draw ?? '')}</td>
+                                <td class="text-center">${escapeHtml(row.lost ?? '')}</td>
+                                <td class="text-center">${escapeHtml(row.goalDifference ?? '')}</td>
+                                <td class="text-center fw-bold">${escapeHtml(row.points ?? '')}</td>
+                            </tr>`;
                 });
 
                 tbody.innerHTML = html;
@@ -523,7 +588,7 @@
                 let html = tbody.innerHTML;
 
                 html += `
-                    <tr><td colspan="8"><hr></td></tr>`;
+                        <tr><td colspan="8"><hr></td></tr>`;
 
                 matches.forEach((m) => {
                     const homeObj = m.homeTeam || (m.home || {});
@@ -534,16 +599,16 @@
                     const when = utc ? new Date(utc).toLocaleString() : (m.status || 'TBD');
 
                     html += `
-                        <tr class="table-secondary">
-                            <td></td>
-                            <td>${home}${teamStarHtml(homeObj.id || homeObj.apiTeamId || homeObj.team_id || '', home, homeObj.crest || homeObj.logo || '')}</td>
-                            <td class="text-center"><strong>vs</strong></td>
-                            <td>${away}${teamStarHtml(awayObj.id || awayObj.apiTeamId || awayObj.team_id || '', away, awayObj.crest || awayObj.logo || '')}</td>
-                            <td class="text-end small text-muted">${when}</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                        </tr>`;
+                            <tr class="table-secondary">
+                                <td></td>
+                                <td>${home}${teamStarHtml(homeObj.id || homeObj.apiTeamId || homeObj.team_id || '', home, homeObj.crest || homeObj.logo || '')}</td>
+                                <td class="text-center"><strong>vs</strong></td>
+                                <td>${away}${teamStarHtml(awayObj.id || awayObj.apiTeamId || awayObj.team_id || '', away, awayObj.crest || awayObj.logo || '')}</td>
+                                <td class="text-end small text-muted">${when}</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>`;
                 });
 
                 tbody.innerHTML = html;
@@ -556,10 +621,13 @@
                 const teamId = btn.dataset.teamId;
                 if (!teamId) return;
 
-                if (!isAuthenticated) {
-                    window.location.href = '/login';
-                    return;
-                }
+                const idStr = String(teamId);
+                const nowFav = !favoritesSet.has(idStr);
+                try { TeamFavorites?.setFavorited?.(idStr, nowFav); } catch (e) { }
+                syncFavoritesFromStorage();
+                renderStandings(tableRows);
+
+                if (!isAuthenticated) return;
 
                 btn.disabled = true;
                 try {
@@ -582,17 +650,19 @@
 
                     if (!res.ok) {
                         console.error('Favorite-team toggle failed', res.status, text);
-                        try { showToast('Failed to toggle favorite team'); } catch (e) {}
+                        try { showToast('Failed to toggle favorite team'); } catch (e) { }
                         return;
                     }
 
                     if (json.status === 'favorited') {
                         favoritesSet.add(String(teamId));
+                        try { TeamFavorites?.setFavorited?.(teamId, true); } catch (e) { }
                         if (json.teamInfo) {
                             showTeamInfoModal(json.teamInfo);
                         }
                     } else if (json.status === 'unfavorited') {
                         favoritesSet.delete(String(teamId));
+                        try { TeamFavorites?.setFavorited?.(teamId, false); } catch (e) { }
                     }
 
                     renderStandings(tableRows);
@@ -615,83 +685,83 @@
     </script>
 
     <style>
-        .standings-hero{
+        .standings-hero {
             padding: 22px;
             border-radius: 18px;
             background:
-                radial-gradient(circle at 18% 0%, rgba(0,255,133,0.35), transparent 45%),
+                radial-gradient(circle at 18% 0%, rgba(0, 255, 133, 0.35), transparent 45%),
                 linear-gradient(135deg, #38003c 0%, #0f172a 75%);
             color: #fff;
             box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
         }
 
         .standings-hero .input-group-text,
-        .standings-hero .form-control{
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.22);
+        .standings-hero .form-control {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.22);
             color: #fff;
         }
 
-        .standings-hero .form-control::placeholder{
-            color: rgba(255,255,255,0.65);
+        .standings-hero .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.65);
         }
 
-        .standings-hero .form-check-label{
-            color: rgba(255,255,255,0.88);
+        .standings-hero .form-check-label {
+            color: rgba(255, 255, 255, 0.88);
         }
 
-        .standings-subtitle{
-            color: rgba(255,255,255,0.82);
+        .standings-subtitle {
+            color: rgba(255, 255, 255, 0.82);
             font-size: 0.95rem;
         }
 
-        .standings-league{
-            background: rgba(255,255,255,0.10);
+        .standings-league {
+            background: rgba(255, 255, 255, 0.10);
             color: #fff;
-            border: 1px solid rgba(255,255,255,0.22);
+            border: 1px solid rgba(255, 255, 255, 0.22);
             padding: 0.45rem 0.75rem;
             border-radius: 999px;
             font-weight: 700;
         }
 
-        .standings-updated{
-            background: rgba(0,0,0,0.22);
+        .standings-updated {
+            background: rgba(0, 0, 0, 0.22);
             color: #fff;
-            border: 1px solid rgba(255,255,255,0.18);
+            border: 1px solid rgba(255, 255, 255, 0.18);
             padding: 0.45rem 0.75rem;
             border-radius: 999px;
             font-weight: 600;
         }
 
-        .standings-toolbar{
+        .standings-toolbar {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
             align-items: center;
         }
 
-        .standings-search{
+        .standings-search {
             max-width: 340px;
         }
 
-        .standings-favs{
+        .standings-favs {
             display: inline-flex;
             align-items: center;
             gap: 8px;
         }
 
-        .standings-card{
+        .standings-card {
             border: 0;
             border-radius: 18px;
             overflow: hidden;
         }
 
-        .standings-table-wrap{
+        .standings-table-wrap {
             max-height: 70vh;
             overflow: auto;
         }
 
-        .standings-table thead th{
+        .standings-table thead th {
             position: sticky;
             top: 0;
             z-index: 2;
@@ -700,28 +770,28 @@
             letter-spacing: 0.03em;
             text-transform: uppercase;
             color: #334155;
-            border-bottom: 1px solid rgba(15,23,42,0.10);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.10);
             padding: 14px 12px;
         }
 
-        .standings-table td{
+        .standings-table td {
             padding: 14px 12px;
-            border-bottom: 1px solid rgba(15,23,42,0.06);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
         }
 
-        .standings-table tbody tr{
+        .standings-table tbody tr {
             transition: background-color 0.18s ease;
         }
 
-        .standings-table tbody tr:hover{
-            background: rgba(15,23,42,0.02);
+        .standings-table tbody tr:hover {
+            background: rgba(15, 23, 42, 0.02);
         }
 
-        .pos-col{
+        .pos-col {
             width: 90px;
         }
 
-        .pos-pill{
+        .pos-pill {
             width: 38px;
             height: 28px;
             display: inline-flex;
@@ -734,26 +804,26 @@
             color: #0f172a;
         }
 
-        .team-cell{
+        .team-cell {
             display: flex;
             align-items: center;
             gap: 10px;
             min-width: 240px;
         }
 
-        .team-crest{
+        .team-crest {
             width: 26px;
             height: 26px;
             object-fit: contain;
-            filter: drop-shadow(0 1px 1px rgba(0,0,0,0.12));
+            filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12));
         }
 
-        .team-name{
+        .team-name {
             font-weight: 700;
             color: #0f172a;
         }
 
-        .favorite-team-btn{
+        .favorite-team-btn {
             width: 30px;
             height: 30px;
             display: inline-flex;
@@ -767,73 +837,91 @@
             transition: transform 0.15s ease, color 0.15s ease;
         }
 
-        .favorite-team-btn:hover{
+        .favorite-team-btn:hover {
             transform: translateY(-1px);
             color: #f5c518;
         }
 
-        .favorite-team-btn.is-favorited{
+        .favorite-team-btn.is-favorited {
             color: #f5c518;
         }
 
-        .favorite-team-btn:disabled{
+        .favorite-team-btn:disabled {
             opacity: 0.55;
             transform: none;
         }
 
-        .rank-cl{
-            background: rgba(0,255,133,0.05);
+        .rank-cl {
+            background: rgba(0, 255, 133, 0.05);
         }
 
-        .rank-cl .pos-pill{
-            background: rgba(0,255,133,0.22);
+        .rank-cl .pos-pill {
+            background: rgba(0, 255, 133, 0.22);
             color: #064e3b;
         }
 
-        .rank-el{
-            background: rgba(217,119,6,0.05);
+        .rank-el {
+            background: rgba(217, 119, 6, 0.05);
         }
 
-        .rank-el .pos-pill{
-            background: rgba(217,119,6,0.14);
+        .rank-el .pos-pill {
+            background: rgba(217, 119, 6, 0.14);
             color: #7c2d12;
         }
 
-        .rank-rel{
-            background: rgba(239,68,68,0.05);
+        .rank-rel {
+            background: rgba(239, 68, 68, 0.05);
         }
 
-        .rank-rel .pos-pill{
-            background: rgba(239,68,68,0.16);
+        .rank-rel .pos-pill {
+            background: rgba(239, 68, 68, 0.16);
             color: #991b1b;
         }
 
-        .standings-legend .legend-box{ display:inline-block; width:14px; height:14px; border-radius:3px; margin-right:8px; vertical-align:middle; }
-        .standings-legend .legend-cl{ background: rgba(0,255,133,0.22); }
-        .standings-legend .legend-el{ background: rgba(59,130,246,0.14); }
-        .standings-legend .legend-rel{ background: rgba(239,68,68,0.16); }
-        .standings-legend .legend-conf{ background: #D97706; }
+        .standings-legend .legend-box {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
 
-        /* Team Info Modal Styles */
+        .standings-legend .legend-cl {
+            background: rgba(0, 255, 133, 0.22);
+        }
+
+        .standings-legend .legend-el {
+            background: rgba(59, 130, 246, 0.14);
+        }
+
+        .standings-legend .legend-rel {
+            background: rgba(239, 68, 68, 0.16);
+        }
+
+        .standings-legend .legend-conf {
+            background: #D97706;
+        }
+
         #teamInfoModal .modal-content {
             border: none;
             border-radius: 12px;
         }
-        
+
         #teamInfoModal .modal-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border-radius: 12px 12px 0 0;
         }
-        
+
         #teamInfoModal .modal-header .btn-close {
             filter: brightness(0) invert(1);
         }
-        
+
         #teamInfoModal .team-info-details {
             font-size: 0.95rem;
         }
-        
+
         #teamInfoModal .team-info-details strong {
             color: #495057;
         }
