@@ -317,6 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // send game info so the server can persist title/logos/time
             const res = await fetch(`/favorites/${apiId}`, {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     'Accept': 'application/json',
@@ -331,6 +332,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     match_time: dateIso ? new Date(dateIso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ''
                 })
             });
+
+            if (!res.ok) {
+                const text = await res.text().catch(() => '');
+                console.warn('Favorite toggle failed', res.status, text);
+                showToast('Failed to toggle favorite. Please try again.', 4000);
+                return;
+            }
 
             const json = await res.json();
 
