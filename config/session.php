@@ -18,7 +18,9 @@ return [
     |
     */
 
-    'driver' => env('SESSION_DRIVER', 'database'),
+    // Temporarily force file session driver to avoid DB session connection errors in local dev.
+    // Revert this change if you want to use database-backed sessions and ensure MySQL is running.
+    'driver' => 'file',
 
     /*
     |--------------------------------------------------------------------------
