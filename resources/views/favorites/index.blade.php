@@ -57,7 +57,7 @@
                                     @else
                                         <h5 class="fw-bold">{{ $game->title ?? 'Match #' . $game->api_game_id }}</h5>
                                     @endif
-                                    <p class="text-muted small">Premier League Match</p>
+                                    <!-- <p class="text-muted small">Premier League Match</p> -->
                                 </div>
 
                                 <hr class="text-light">

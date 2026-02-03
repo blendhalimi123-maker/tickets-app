@@ -130,9 +130,7 @@
         <div class="ms-auto d-flex align-items-center gap-3">
 
             @auth
-                <a href="{{ route('favorites.index') }}" class="nav-link text-dark">
-                    <i class="fa-regular fa-star me-1 text-warning"></i> Favorite Games
-                </a>
+                <a href="{{ route('favorites.index') }}" class="nav-link text-dark">Favorite Games</a>
 
                 @if(auth()->user()->isUser())
                 <div class="position-relative">
