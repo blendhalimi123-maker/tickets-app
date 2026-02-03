@@ -59,6 +59,47 @@ class FootballService
         return $data['match'] ?? null;
     }
 
+    public function getCompetitionStandings($competitionCode, $cacheMinutes = 10)
+    {
+        return Cache::remember("football_standings_{$competitionCode}", $cacheMinutes * 60, function () use ($competitionCode) {
+            $response = Http::withOptions(['verify' => false])
+                ->withHeaders(['X-Auth-Token' => $this->apiKey])
+                ->get("{$this->baseUrl}/competitions/{$competitionCode}/standings");
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            \Log::error("Football standings API Error ({$competitionCode}): " . $response->status());
+            return ['standings' => []];
+        });
+    }
+
+        public function getSportMonksStandings($roundId, $cacheMinutes = 5)
+        {
+            $token = env('SPORTMONKS_API_TOKEN');
+            if (!$token) {
+                \Log::warning('SPORTMONKS_API_TOKEN not configured');
+                return ['data' => []];
+            }
+
+            return Cache::remember("sportmonks_standings_{$roundId}", $cacheMinutes * 60, function () use ($token, $roundId) {
+                $base = "https://api.sportmonks.com/v3/football/standings/rounds/{$roundId}";
+                $response = Http::withOptions(['verify' => false])
+                    ->get($base, [
+                        'api_token' => $token,
+                        'include' => 'stage;league;details.type;participant'
+                    ]);
+
+                if ($response->successful()) {
+                    return $response->json();
+                }
+
+                \Log::error('SportMonks standings API error: ' . $response->status());
+                return ['data' => []];
+            });
+        }
+
     public function getAllCompetitions()
     {
         $competitions = [
@@ -82,26 +123,12 @@ class FootballService
         return $data;
     }
 
-    public function getTeamMatches($teamId)
-    {
-        $response = Http::withOptions(['verify' => false])
-            ->withHeaders(['X-Auth-Token' => $this->apiKey])
-            ->get("{$this->baseUrl}/teams/{$teamId}/matches", [
-                'status' => 'SCHEDULED'
-            ]);
-
-        return $response->successful() ? ['matches' => $response->json()['matches'] ?? []] : ['matches' => []];
-    }
-
-    /**
-     * Fetch in-play/live events from SportMonks (alternative provider).
-     * Uses SPORTMONKS_API_TOKEN from env and caches results.
-     */
+    
     public function getSportMonksInplay($cacheMinutes = 1)
     {
-        $token = env('SPORTMONKS_API_TOKEN');
+        $token = env('SPORTMONKS_API_TOKEN_OLD') ?: env('SPORTMONKS_API_TOKEN');
         if (!$token) {
-            \Log::warning('SPORTMONKS_API_TOKEN not configured');
+            \Log::warning('SPORTMONKS API token(s) not configured');
             return ['data' => []];
         }
 
@@ -120,5 +147,16 @@ class FootballService
             \Log::error('SportMonks API error: ' . $response->status());
             return ['data' => []];
         });
+    }
+
+    public function getTeamMatches($teamId)
+    {
+        $response = Http::withOptions(['verify' => false])
+            ->withHeaders(['X-Auth-Token' => $this->apiKey])
+            ->get("{$this->baseUrl}/teams/{$teamId}/matches", [
+                'status' => 'SCHEDULED'
+            ]);
+
+        return $response->successful() ? ['matches' => $response->json()['matches'] ?? []] : ['matches' => []];
     }
 }

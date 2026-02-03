@@ -41,34 +41,30 @@ class FavoriteController extends Controller
 
         $existing = Game::where('api_game_id', $apiGameId)->first();
 
-        $home = $request->input('home_team') ?: ($existing->home_team ?? null);
-        $away = $request->input('away_team') ?: ($existing->away_team ?? null);
+        $home = $request->input('home_team');
+        $away = $request->input('away_team');
 
-        $title = null;
-        if ($home || $away) {
-            $title = trim(($home ?? '') . ' vs ' . ($away ?? ''));
-        } else {
-            $title = $existing->title ?? null;
+        $title = trim(($home ?? '') . ' vs ' . ($away ?? ''));
+        if ($title === 'vs') {
+            $title = $existing?->title ?? ('Match ' . $apiGameId);
+        }
+
+        $matchDate = $existing?->match_date;
+        if ($request->filled('match_date')) {
+            try {
+                $matchDate = \Carbon\Carbon::parse($request->input('match_date'));
+            } catch (\Throwable $e) {
+                $matchDate = $existing?->match_date;
+            }
         }
 
         $game = Game::updateOrCreate(
             ['api_game_id' => $apiGameId],
             [
-                'title'          => $title,
-                'home_team'      => $home,
-                'away_team'      => $away,
-                'home_team_logo' => $request->input('home_logo') ?: ($existing->home_team_logo ?? null),
-                'away_team_logo' => $request->input('away_logo') ?: ($existing->away_team_logo ?? null),
-                'match_date'     => $request->input('match_date') ?: ($existing->match_date ?? null),
-                'match_time'     => $request->input('match_time') ?: ($existing->match_time ?? null),
+                'title' => $title,
+                'match_date' => $matchDate,
             ]
         );
-
-        // Ensure title persisted
-        if ($title) {
-            $game->title = $title;
-            $game->save();
-        }
 
         if ($user->hasFavorited($apiGameId)) {
             $user->unfavorite($apiGameId);
@@ -81,9 +77,9 @@ class FavoriteController extends Controller
             'id' => $game->api_game_id,
             'title' => $game->title,
             'date' => $game->match_date ? $game->match_date->format('M j, Y') : null,
-            'time' => $game->match_date ? $game->match_date->format('g:i A') : $game->match_time,
-            'homeTeam' => ['name' => $game->home_team, 'logo' => $game->home_team_logo ?? null],
-            'awayTeam' => ['name' => $game->away_team, 'logo' => $game->away_team_logo ?? null],
+            'time' => $game->match_date ? $game->match_date->format('g:i A') : null,
+            'homeTeam' => ['name' => $home, 'logo' => null],
+            'awayTeam' => ['name' => $away, 'logo' => null],
         ];
 
         return response()->json(['status' => 'favorited', 'game' => $gameObj]);

@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const home = decodeURIComponent(btn.dataset.home || '');
             const away = decodeURIComponent(btn.dataset.away || '');
-            const dateIso = btn.dataset.date || '';
+            const dateIso = btn.dataset.date ? decodeURIComponent(btn.dataset.date) : '';
             const dateStr = formatIsoDate(dateIso);
 
             // send game info so the server can persist title/logos/time
@@ -347,20 +347,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 subscribeToGameChannel(String(apiId));
                 const icon = btn.querySelector('.favorite-icon');
                 if (icon) {
-                    icon.innerText = '★';
+                    icon.textContent = '\u2605';
                     icon.classList.add('favorited');
                 }
 
                 showToast(`<div><strong>${escapeHtml(home)} vs ${escapeHtml(away)}</strong> has been <span style="color:#00ff85">added</span> to your favorite games<div class="small text-muted mt-1">${escapeHtml(dateStr)}</div></div>`);
 
-                // notify other pages (favorites list) that a favorite was added
                 window.dispatchEvent(new CustomEvent('favorite-updated', { detail: { apiId, status: 'favorited', game: json.game || null } }));
             } else if (json.status === 'unfavorited') {
                 favoritesSet.delete(String(apiId));
                 unsubscribeFromGameChannel(String(apiId));
                 const icon = btn.querySelector('.favorite-icon');
                 if (icon) {
-                    icon.innerText = '☆';
+                    icon.textContent = '\u2606';
                     icon.classList.remove('favorited');
                 }
 
@@ -499,7 +498,7 @@ function renderMatches(matches) {
         const starred = favoritesSet.has(idStr);
         const homeLogo = match.homeTeam.crest || getTeamIcon(match.homeTeam.name);
         const awayLogo = match.awayTeam.crest || getTeamIcon(match.awayTeam.name);
-        const starHtml = `<button class="btn btn-link p-0 favorite-btn" data-game-id="${idStr}" data-home="${encodeURIComponent(homeName)}" data-away="${encodeURIComponent(awayName)}" data-home-logo="${encodeURIComponent(homeLogo)}" data-away-logo="${encodeURIComponent(awayLogo)}" data-date="${encodeURIComponent(match.utcDate)}" aria-label="Favorite"><span class="favorite-icon ${starred ? 'favorited' : ''}">${starred ? '★' : '☆'}</span></button>`;
+        const starHtml = `<button class="btn btn-link p-0 favorite-btn" data-game-id="${idStr}" data-home="${encodeURIComponent(homeName)}" data-away="${encodeURIComponent(awayName)}" data-home-logo="${encodeURIComponent(homeLogo)}" data-away-logo="${encodeURIComponent(awayLogo)}" data-date="${match.utcDate}" aria-label="Favorite"><span class="favorite-icon ${starred ? 'favorited' : ''}">${starred ? '&#9733;' : '&#9734;'}</span></button>`;
 
         matchCard.innerHTML = `
             <div class="card-body p-3">
@@ -729,7 +728,6 @@ function manageTickets(id) { window.location.href = `/admin/tickets/${id}`; }
     color: #9aa0a6; 
     opacity: 0.9;
     line-height: 1;
-    pointer-events: none; 
 }
 
 .favorite-icon.favorited{
@@ -737,7 +735,19 @@ function manageTickets(id) { window.location.href = `/admin/tickets/${id}`; }
     opacity: 1 !important;
 }
 
-.favorite-btn{ cursor: pointer; background: transparent; border: 0; padding: 0; }
+.favorite-btn{
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 4;
+    position: relative;
+}
 .ui-datepicker-header {
     background: #38003c !important;
     border: none !important;

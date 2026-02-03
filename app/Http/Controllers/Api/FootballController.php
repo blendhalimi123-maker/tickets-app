@@ -108,4 +108,39 @@ class FootballController extends Controller
             ], 500);
         }
     }
+
+    public function laLigaStandings()
+    {
+        try {
+            $data = $this->footballService->getCompetitionStandings('PD');
+            $standings = $data['standings'] ?? [];
+
+            $total = null;
+            if (is_array($standings)) {
+                foreach ($standings as $s) {
+                    if (($s['type'] ?? null) === 'TOTAL') {
+                        $total = $s;
+                        break;
+                    }
+                }
+                $total = $total ?: ($standings[0] ?? null);
+            }
+
+            $table = (is_array($total) && isset($total['table']) && is_array($total['table'])) ? $total['table'] : [];
+
+            return response()->json([
+                'success' => true,
+                'competition' => $data['competition'] ?? null,
+                'season' => $data['season'] ?? null,
+                'table' => $table,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('La Liga standings API Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch standings',
+                'table' => []
+            ], 500);
+        }
+    }
 }

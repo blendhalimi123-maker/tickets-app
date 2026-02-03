@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\Game;
 use App\Models\GameCart;
+use App\Models\Team;
 
 class User extends Authenticatable
 {
@@ -84,6 +85,34 @@ class User extends Authenticatable
         
         if ($game) {
             $this->favorites()->detach($game->id);
+        }
+    }
+
+    public function favoriteTeams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class, 'user_favorite_teams')->withTimestamps();
+    }
+
+    public function hasFavoritedTeam($apiTeamId): bool
+    {
+        return $this->favoriteTeams()->where('api_team_id', $apiTeamId)->exists();
+    }
+
+    public function favoriteTeam($apiTeamId): void
+    {
+        $team = Team::firstOrCreate(
+            ['api_team_id' => $apiTeamId],
+            ['name' => 'Team ' . $apiTeamId]
+        );
+
+        $this->favoriteTeams()->syncWithoutDetaching([$team->id]);
+    }
+
+    public function unfavoriteTeam($apiTeamId): void
+    {
+        $team = Team::where('api_team_id', $apiTeamId)->first();
+        if ($team) {
+            $this->favoriteTeams()->detach($team->id);
         }
     }
 }

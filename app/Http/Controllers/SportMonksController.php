@@ -19,4 +19,11 @@ class SportMonksController extends Controller
         $data = $this->football->getSportMonksInplay(1);
         return response()->json($data);
     }
+
+
+    public function standings($roundId)
+    {
+        $data = $this->football->getSportMonksStandings($roundId, 5);
+        return response()->json($data);
+    }
 }

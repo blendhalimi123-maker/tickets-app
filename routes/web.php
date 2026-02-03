@@ -14,10 +14,13 @@ use App\Http\Controllers\Admin\PriceController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\FavoriteTeamController;
 use App\Models\User;
 use App\Models\Ticket;
 use App\Mail\AdminNewSaleMail;
 use App\Mail\UserTicketMail;
+use App\Http\Controllers\SportMonksController;
+
 
 Route::get('/', function () {
     return redirect()->route('user.dashboard');
@@ -79,17 +82,19 @@ Route::get('/team-schedule', function () {
     return view('football.schedule');
 })->name('football.schedule');
 
-// SportMonks proxy for in-play events
-use App\Http\Controllers\SportMonksController;
 Route::get('/api/sportmonks/inplay', [SportMonksController::class, 'inplay'])->name('api.sportmonks.inplay');
+Route::get('/api/sportmonks/standings/{roundId}', [SportMonksController::class, 'standings'])->name('api.sportmonks.standings');
 
 Route::get('/dashboard-events', function () {
     return view('football.events');
 })->name('football.events');
 
+Route::get('/favorite-teams', [FavoriteTeamController::class, 'index'])->name('favorite-teams.index');
+
 Route::prefix('api/football')->group(function () {
     Route::get('/all', [ApiFootballController::class, 'allCompetitions']);
     Route::get('/champions-league', [ApiFootballController::class, 'championsLeague']);
+    Route::get('/la-liga/standings', [ApiFootballController::class, 'laLigaStandings']);
     Route::get('/premier-league', [ApiFootballController::class, 'premierLeague']);
     Route::get('/world-cup', [ApiFootballController::class, 'worldCup']);
 });
@@ -125,6 +130,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/favorites/{gameId}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+    Route::post('/favorite-teams/{teamId}', [FavoriteTeamController::class, 'toggle'])->name('favorite-teams.toggle');
 
     Route::get('/my-tickets/{id}/view', [GameCartController::class, 'showMyTicket'])->name('tickets.my');
     Route::get('/my-tickets', [GameCartController::class, 'myTickets'])->name('my-tickets');
