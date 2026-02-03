@@ -3,11 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Team;
+use App\Services\FootballService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class FavoriteTeamController extends Controller
 {
+    protected $footballService;
+
+    public function __construct(FootballService $footballService)
+    {
+        $this->footballService = $footballService;
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -45,6 +53,8 @@ class FavoriteTeamController extends Controller
             $user->favoriteTeam($apiTeamId);
             $team->refresh();
 
+            $teamInfo = $this->footballService->getTeamInfo($apiTeamId);
+
             return response()->json([
                 'status' => 'favorited',
                 'team' => [
@@ -52,6 +62,7 @@ class FavoriteTeamController extends Controller
                     'name' => $team->name,
                     'crest' => $team->crest,
                 ],
+                'teamInfo' => $teamInfo,
             ]);
         } catch (\Throwable $e) {
             \Log::error('FavoriteTeam toggle error: ' . $e->getMessage(), [

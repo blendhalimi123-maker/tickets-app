@@ -516,13 +516,13 @@ function renderMatches(matches) {
                     <div class="col-md-4">
                         <div class="d-flex align-items-center">
                             <img src="${match.homeTeam.crest || getTeamIcon(match.homeTeam.name)}" class="team-crest me-3">
-                            <div class="fw-bold">${match.homeTeam.shortName || match.homeTeam.name}</div>
+                            <div class="fw-bold"><a href="javascript:void(0)" onclick="filterByTeam('${homeName.replace(/'/g, "\\'")}')" class="text-decoration-none text-dark">${match.homeTeam.shortName || match.homeTeam.name}</a></div>
                         </div>
                     </div>
                     <div class="col-md-2 text-center"><span class="badge bg-light text-dark px-3 py-2">VS</span></div>
                     <div class="col-md-4 d-flex align-items-center justify-content-end">
                         <div class="text-end me-3">
-                            <div class="fw-bold">${awayName}</div>
+                            <div class="fw-bold"><a href="javascript:void(0)" onclick="filterByTeam('${awayName.replace(/'/g, "\\'")}')" class="text-decoration-none text-dark">${awayName}</a></div>
                         </div>
                         <img src="${match.awayTeam.crest || getTeamIcon(match.awayTeam.name)}" class="team-crest">
                     </div>
@@ -594,6 +594,11 @@ function clearFilters() {
     applyFilters(true);
 }
 
+function filterByTeam(teamName) {
+    document.getElementById('team-filter').value = teamName;
+    applyFilters(true);
+}
+
 function initializeDatepicker() {
     $('#date-filter').datepicker({
         dateFormat: 'yy-mm-dd',
@@ -617,11 +622,9 @@ function initializeDatepicker() {
         }
     });
 
-    // Open datepicker when input or calendar icon is clicked
     $('#date-filter').on('click', function() { $(this).datepicker('show'); });
     $('.datepicker-toggle').on('click', function() { $('#date-filter').datepicker('show'); });
 
-    // Make the "Today" button set today's date and apply filter
     $(document).on('click', '.ui-datepicker-buttonpane .ui-datepicker-current', function() {
         const today = $.datepicker.formatDate('yy-mm-dd', new Date());
         $('#date-filter').datepicker('setDate', today);

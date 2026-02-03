@@ -100,6 +100,22 @@ class FootballService
             });
         }
 
+    public function getTeamInfo($teamId, $cacheMinutes = 60)
+    {
+        return Cache::remember("football_team_{$teamId}", $cacheMinutes * 60, function () use ($teamId) {
+            $response = Http::withOptions(['verify' => false])
+                ->withHeaders(['X-Auth-Token' => $this->apiKey])
+                ->get("{$this->baseUrl}/teams/{$teamId}");
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            \Log::error("Football Team API Error ({$teamId}): " . $response->status());
+            return null;
+        });
+    }
+
     public function getAllCompetitions()
     {
         $competitions = [

@@ -53,6 +53,40 @@
                     </table>
                 </div>
             </div>
+
+            <div class="mt-3 standings-legend">
+                <div class="card border-0 mt-2">
+                    <div class="card-body p-3 small text-muted">
+                        <div class="mb-1"><span class="legend-box legend-cl"></span> Promotion - Champions League (League phase)</div>
+                        <div class="mb-1"><span class="legend-box legend-el"></span> Promotion - Europa League (League phase)</div>
+                        <div class="mb-1"><span class="legend-box legend-conf"></span> Promotion - Conference League (Qualification)</div>
+                        <div class="mb-1"><span class="legend-box legend-rel"></span> Relegation - LaLiga2</div>
+                        <div class="mt-2 small text-muted">If points are tied at the end of the competition, head-to-head matches will be the tie-breaker.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Info Modal -->
+    <div class="modal fade" id="teamInfoModal" tabindex="-1" aria-labelledby="teamInfoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="teamInfoModalLabel">Team Information</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="teamInfoContent">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -93,10 +127,9 @@
                     const data = await res.json();
                     const name = (data.competition && (data.competition.name || data.competition.code)) || 'La Liga';
                     document.getElementById('league-name').textContent = name;
-                    tableRows = Array.isArray(data.table) ? data.table : [];
+                    tableRows = Array.isArray(data.table) ? data.table : (Array.isArray(data.standings) ? data.standings : []);
                     renderStandings(tableRows);
                     document.getElementById('update-time').textContent = new Date().toLocaleString();
-                    return;
 
                     const events = data.data || [];
                     if (!events.length) {
@@ -150,9 +183,9 @@
                         return;
                     }
 
-                    renderEvents(events);
-                    document.getElementById('update-time').innerText = new Date().toLocaleTimeString();
+                    document.getElementById('update-time').textContent = new Date().toLocaleString();
                 } catch (err) {
+                    console.error('Load error:', err);
                     document.getElementById('standings-body').innerHTML = `
                         <tr>
                             <td colspan="8" class="text-center text-danger">
@@ -179,52 +212,19 @@
             const subscriptions = {};
             const teamSubscriptions = {};
             function subscribeToTeamChannel(teamId) {
-                if (typeof window.Echo === 'undefined') return;
-                if (!teamId) return;
-                if (teamSubscriptions[teamId]) return;
-                try {
-                    teamSubscriptions[teamId] = window.Echo.private(`team.${teamId}`)
-                        .listen('TeamUpdated', (e) => {
-                            showToast(e.message || 'Update for your favorite team');
-                        });
-                } catch (err) {
-                    console.warn('Subscribe to team channel failed', err);
-                }
+                return;
             }
 
             function unsubscribeFromTeamChannel(teamId) {
-                if (typeof window.Echo === 'undefined') return;
-                if (!teamId) return;
-                if (!teamSubscriptions[teamId]) return;
-                try {
-                    window.Echo.leave(`team.${teamId}`);
-                    delete teamSubscriptions[teamId];
-                } catch (err) {
-                    console.warn('Unsubscribe from team channel failed', err);
-                }
+                return;
             }
+            
             function subscribeToGameChannel(apiId) {
-                if (typeof window.Echo === 'undefined') return;
-                if (subscriptions[apiId]) return;
-                try {
-                    subscriptions[apiId] = window.Echo.private(`game.${apiId}`)
-                        .listen('GameTicketSold', (e) => {
-                            showToast(e.message || 'Update for this match');
-                        });
-                } catch (err) {
-                    console.warn('Subscribe failed', err);
-                }
+                return;
             }
 
             function unsubscribeFromGameChannel(apiId) {
-                if (typeof window.Echo === 'undefined') return;
-                if (!subscriptions[apiId]) return;
-                try {
-                    window.Echo.leave(`game.${apiId}`);
-                    delete subscriptions[apiId];
-                } catch (err) {
-                    console.warn('Unsubscribe failed', err);
-                }
+                return;
             }
 
             function showToast(html, { duration = 4000 } = {}) {
@@ -252,7 +252,6 @@
                     if (!r.ok) return;
                     const j = await r.json();
                     favoritesSet = new Set((j.favorites || []).map(String));
-                    // subscribe to team channels for websocket notifications
                     for (const id of favoritesSet) {
                         subscribeToTeamChannel(id);
                     }
@@ -262,7 +261,18 @@
             }
 
             async function toggleTeamFav(teamId, name, crest, el) {
-                if (!teamId) return;
+                if (!teamId) {
+                    console.warn('No team ID provided');
+                    return;
+                }
+                
+                if (!isAuthenticated) {
+                    alert('Please log in to favorite teams');
+                    return;
+                }
+                
+                console.log('Toggling favorite for team:', teamId, name);
+                
                 try {
                     const res = await fetch(`/favorite-teams/${teamId}`, {
                         method: 'POST',
@@ -274,13 +284,29 @@
                         },
                         body: JSON.stringify({ name: decodeURIComponent(name || ''), crest: decodeURIComponent(crest || '') })
                     });
-                    if (!res.ok) throw new Error('Network response not ok');
+                    
+                    if (!res.ok) {
+                        const errorText = await res.text();
+                        console.error('Server error:', res.status, errorText);
+                        throw new Error(`Network response not ok: ${res.status}`);
+                    }
+                    
                     const j = await res.json();
+                    console.log('Server response:', j);
+                    
                     if (j.status === 'favorited') {
                         favoritesSet.add(String(teamId));
                         subscribeToTeamChannel(teamId);
                         el.classList.remove('text-muted'); el.classList.add('text-warning');
                         showToast(`<strong>${escapeHtml(decodeURIComponent(name || ''))}</strong> added to favorite teams`);
+                        
+                        console.log('Team info:', j.teamInfo);
+                        if (j.teamInfo) {
+                            showTeamInfoModal(j.teamInfo);
+                        } else {
+                            console.warn('No team info returned from server');
+                        }
+                        
                         window.dispatchEvent(new CustomEvent('favorite-updated', { detail: { teamId: teamId, status: 'favorited', team: j.team || null } }));
                     } else if (j.status === 'unfavorited') {
                         favoritesSet.delete(String(teamId));
@@ -290,8 +316,82 @@
                         window.dispatchEvent(new CustomEvent('favorite-updated', { detail: { teamId: teamId, status: 'unfavorited' } }));
                     }
                 } catch (e) {
-                    console.warn('Failed to toggle team favorite', e);
+                    console.error('Failed to toggle team favorite:', e);
+                    alert('Failed to toggle favorite. Please try again.');
                 }
+            }
+
+            function showTeamInfoModal(teamInfo) {
+                console.log('Showing team info modal with data:', teamInfo);
+                
+                const modalEl = document.getElementById('teamInfoModal');
+                if (!modalEl) {
+                    console.error('Modal element not found');
+                    return;
+                }
+                
+                const content = document.getElementById('teamInfoContent');
+                if (!content) {
+                    console.error('Modal content element not found');
+                    return;
+                }
+                
+                if (!teamInfo) {
+                    content.innerHTML = '<p class="text-muted">Team information not available.</p>';
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                    return;
+                }
+
+                const team = teamInfo;
+                let html = '<div class="team-info-details">';
+                
+                if (team.crest) {
+                    html += `<div class="text-center mb-4">
+                        <img src="${escapeHtml(team.crest)}" alt="${escapeHtml(team.name || 'Team')}" class="img-fluid" style="max-width: 120px; max-height: 120px;">
+                    </div>`;
+                }
+                
+                html += `<h4 class="text-center mb-3 fw-bold">${escapeHtml(team.name || team.shortName || 'Unknown Team')}</h4>`;
+                
+                html += '<div class="row g-3">';
+                
+                if (team.shortName) {
+                    html += `<div class="col-6"><strong>Short Name:</strong></div><div class="col-6">${escapeHtml(team.shortName)}</div>`;
+                }
+                
+                if (team.tla) {
+                    html += `<div class="col-6"><strong>TLA:</strong></div><div class="col-6">${escapeHtml(team.tla)}</div>`;
+                }
+                
+                if (team.founded) {
+                    html += `<div class="col-6"><strong>Founded:</strong></div><div class="col-6">${escapeHtml(String(team.founded))}</div>`;
+                }
+                
+                if (team.venue) {
+                    html += `<div class="col-6"><strong>Stadium:</strong></div><div class="col-6">${escapeHtml(team.venue)}</div>`;
+                }
+                
+                if (team.address) {
+                    html += `<div class="col-6"><strong>Address:</strong></div><div class="col-6">${escapeHtml(team.address)}</div>`;
+                }
+                
+                if (team.clubColors) {
+                    html += `<div class="col-6"><strong>Club Colors:</strong></div><div class="col-6">${escapeHtml(team.clubColors)}</div>`;
+                }
+                
+                if (team.website) {
+                    html += `<div class="col-12 mt-2"><a href="${escapeHtml(team.website)}" target="_blank" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="fas fa-external-link-alt me-1"></i> Visit Official Website
+                    </a></div>`;
+                }
+                
+                html += '</div></div>';
+                
+                content.innerHTML = html;
+                
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
             }
 
             document.addEventListener('click', function(ev) {
@@ -488,6 +588,9 @@
 
                     if (json.status === 'favorited') {
                         favoritesSet.add(String(teamId));
+                        if (json.teamInfo) {
+                            showTeamInfoModal(json.teamInfo);
+                        }
                     } else if (json.status === 'unfavorited') {
                         favoritesSet.delete(String(teamId));
                     }
@@ -688,12 +791,12 @@
         }
 
         .rank-el{
-            background: rgba(59,130,246,0.04);
+            background: rgba(217,119,6,0.05);
         }
 
         .rank-el .pos-pill{
-            background: rgba(59,130,246,0.14);
-            color: #1d4ed8;
+            background: rgba(217,119,6,0.14);
+            color: #7c2d12;
         }
 
         .rank-rel{
@@ -703,6 +806,36 @@
         .rank-rel .pos-pill{
             background: rgba(239,68,68,0.16);
             color: #991b1b;
+        }
+
+        .standings-legend .legend-box{ display:inline-block; width:14px; height:14px; border-radius:3px; margin-right:8px; vertical-align:middle; }
+        .standings-legend .legend-cl{ background: rgba(0,255,133,0.22); }
+        .standings-legend .legend-el{ background: rgba(59,130,246,0.14); }
+        .standings-legend .legend-rel{ background: rgba(239,68,68,0.16); }
+        .standings-legend .legend-conf{ background: #D97706; }
+
+        /* Team Info Modal Styles */
+        #teamInfoModal .modal-content {
+            border: none;
+            border-radius: 12px;
+        }
+        
+        #teamInfoModal .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        #teamInfoModal .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+        
+        #teamInfoModal .team-info-details {
+            font-size: 0.95rem;
+        }
+        
+        #teamInfoModal .team-info-details strong {
+            color: #495057;
         }
     </style>
 @endsection
