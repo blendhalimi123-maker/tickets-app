@@ -173,7 +173,7 @@
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body text-center p-3">
                         <i class="fas fa-play-circle fa-lg text-success mb-2"></i>
-                        <h4 class="fw-bold" id="live-matches">0</h4>
+                        <h4 class="fw-bold" id="live-matches"></h4>
                         <p class="text-muted mb-0 small">Live Now</p>
                     </div>
                 </div>

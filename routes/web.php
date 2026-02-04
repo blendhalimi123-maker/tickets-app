@@ -131,7 +131,7 @@ Route::middleware(['auth'])->group(function () {
         $tickets = Ticket::where('user_id', $user->id)->get();
 
         return view('checkout.success', compact('tickets', 'id'));
-    })->name('checkout.success');
+     })->name('checkout.success');
 
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/favorites/{gameId}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');

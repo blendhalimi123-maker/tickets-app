@@ -69,14 +69,12 @@ class CheckoutController extends Controller
                 'updated_at' => now()
             ]);
 
-        // Update games tickets_sold and broadcast to favorited subscribers
         try {
             $grouped = $cartItems->groupBy('api_game_id');
             foreach ($grouped as $apiId => $items) {
                 $soldQty = $items->sum('quantity');
                 $game = Game::firstOrCreate(['api_game_id' => $apiId], ['title' => 'Match ' . $apiId]);
                 $game->increment('tickets_sold', $soldQty);
-                // reload to get current tickets_sold/left
                 $game->refresh();
 
                 event(new GameTicketSold($game, $soldQty));

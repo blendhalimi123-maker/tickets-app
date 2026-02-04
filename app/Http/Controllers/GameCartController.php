@@ -28,9 +28,7 @@ class GameCartController extends Controller
         return view('cart.index', compact('cartItems', 'total'));
     }
 
-    /**
-     * Add a single seat (AJAX)
-     */
+   
     public function addSeat(Request $request)
     {
         if (!auth()->check()) {
@@ -91,9 +89,7 @@ class GameCartController extends Controller
         }
     }
 
-    /**
-     * Add multiple seats (Form Submit)
-     */
+  
     public function addMultipleSeats(Request $request)
     {
         if (!auth()->check()) {
@@ -127,18 +123,15 @@ class GameCartController extends Controller
         $processedCount = 0;
 
         foreach ($seatsData as $seat) {
-            // These now come from the stadium seat map JS
             $stand  = $seat['stand'] ?? 'General Admission';
             $row    = $seat['row'] ?? 'Standard';
             $number = $seat['number'] ?? ($seat['seat_number'] ?? null);
 
             if ($number === null) {
-                // If, for some reason, number is still missing, skip this seat
                 continue;
             }
 
             try {
-                // updateOrCreate inside Try-Catch ensures the loop never crashes the whole site
                 GameCart::updateOrCreate(
                     [
                         'user_id'     => auth()->id(),
@@ -161,7 +154,6 @@ class GameCartController extends Controller
                 );
                 $processedCount++;
             } catch (\Exception $e) {
-                // Log the error but keep the loop running for other seats
                 Log::warning("Duplicate seat skipped: User " . auth()->id() . " Game " . $request->api_game_id);
                 continue;
             }

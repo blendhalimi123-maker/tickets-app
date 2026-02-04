@@ -14,7 +14,6 @@ class RoleMiddleware
             return redirect()->route('login');
         }
 
-        // Check if the user's role is in the allowed roles
         if ($roles && !in_array(auth()->user()->role, $roles)) {
             abort(403, 'Unauthorized');
         }

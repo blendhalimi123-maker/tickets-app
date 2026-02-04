@@ -72,7 +72,6 @@
         </div>
     </div>
 
-    <!-- Team Info Modal -->
     <div class="modal fade" id="teamInfoModal" tabindex="-1" aria-labelledby="teamInfoModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -329,7 +328,6 @@
                         body: JSON.stringify({ name: decodeURIComponent(name || ''), crest: decodeURIComponent(crest || '') })
                     });
                 } catch (e) {
-                    // keep localStorage as source of truth for UI
                 }
             }
 
