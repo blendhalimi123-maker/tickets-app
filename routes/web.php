@@ -22,6 +22,7 @@ use App\Mail\UserTicketMail;
 use App\Http\Controllers\SportMonksController;
 use App\Http\Controllers\TeamFixturesController;
 use App\Http\Controllers\MatchController;
+use App\Http\Controllers\SquadController;
 
 
 Route::get('/', function () {
@@ -93,6 +94,7 @@ Route::get('/dashboard-events', function () {
 
 Route::get('/team/{teamId}/fixtures', [TeamFixturesController::class, 'show'])->name('team.fixtures');
 Route::get('/match/{matchId}', [MatchController::class, 'show'])->name('match.show');
+Route::get('/squad/{id}', [SquadController::class, 'show'])->name('squad.show');
 
 Route::get('/favorite-teams', [FavoriteTeamController::class, 'index'])->name('favorite-teams.index');
 

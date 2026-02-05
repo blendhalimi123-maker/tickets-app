@@ -20,3 +20,5 @@ Route::middleware('auth:sanctum')->get('/tickets', [
     GameCartController::class,
     'tickets_api'
 ])->name('api.tickets');
+
+Route::get('/team/map', [\App\Http\Controllers\Api\TeamMapController::class, 'map']);

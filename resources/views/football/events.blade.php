@@ -102,6 +102,46 @@
             const searchEl = document.getElementById('team-search');
             const favoritesOnlyEl = document.getElementById('favorites-only');
 
+            const nameToSportmonksId = {
+                "FC Barcelona": "83",
+                "Real Madrid": "3468",
+                "Atlético Madrid": "10",
+                "Atlético": "10",
+                "Villarreal": "3477",
+                "Real Betis": "19",
+                "Sevilla FC": "20",
+                "Real Sociedad": "28",
+                "Athletic Bilbao": "32",
+                "Athletic Club": "32",
+                "Girona": "9355",
+                "Valencia CF": "100",
+                "Celta Vigo": "123",
+                "Osasuna": "328",
+                "Getafe": "230",
+                "Espanyol": "225",
+                "Mallorca": "101",
+                "Rayo Vallecano": "243",
+                "Alavés": "281",
+                "Elche": "221",
+                "Levante": "12",
+                "Real Oviedo": "280"
+            };
+
+            function normalizeNameForMap(n) {
+                if (!n) return '';
+                return String(n)
+                    .toLowerCase()
+                    .normalize('NFKD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/\b(?:fc|cf|club|de|del|rcd|rc|ca|cd|ud|sd|balompie|futbol|football)\b/g, ' ')
+                    .replace(/[^a-z0-9]/g, '');
+            }
+            const nameToSportmonksIdNormalized = {};
+            Object.keys(nameToSportmonksId).forEach(k => {
+                const nk = normalizeNameForMap(k);
+                if (nk) nameToSportmonksIdNormalized[nk] = String(nameToSportmonksId[k]);
+            });
+
             let tableRows = [];
             let favoritesSet = new Set();
             const TeamFavorites = window.TeamFavorites || null;
@@ -198,7 +238,7 @@
                         }
 
                         document.getElementById('standings-body').innerHTML = `
-                                <tr><td colspan="8" class="text-center py-5">No live events right now.</td></tr>`;
+                                    <tr><td colspan="8" class="text-center py-5">No live events right now.</td></tr>`;
                         return;
                     }
 
@@ -206,12 +246,12 @@
                 } catch (err) {
                     console.error('Load error:', err);
                     document.getElementById('standings-body').innerHTML = `
-                            <tr>
-                                <td colspan="8" class="text-center text-danger">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    Failed to load standings.
-                                </td>
-                            </tr>`;
+                                <tr>
+                                    <td colspan="8" class="text-center text-danger">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Failed to load standings.
+                                    </td>
+                                </tr>`;
                 }
             }
 
@@ -224,8 +264,66 @@
                 const isFav = favoritesSet.has(id);
                 const cls = isFav ? 'text-warning' : 'text-muted';
                 return ` <a href="#" class="team-fav" data-team-id="${escapeAttr(id)}" data-team-name="${escapeAttr(teamName)}" data-crest="${escapeAttr(crest)}" title="Toggle favorite">
-                                <i class="fas fa-star ${cls}"></i>
-                            </a>`;
+                                    <i class="fas fa-star ${cls}"></i>
+                                </a>`;
+            }
+
+            function resolveTeamId(obj) {
+                if (!obj) return '';
+                if (obj.data && obj.data.id != null) return String(obj.data.id);
+                if (obj.team && obj.team.data && obj.team.data.id != null) return String(obj.team.data.id);
+                if (obj.team && obj.team.id != null) return String(obj.team.id);
+                if (obj.id != null) return String(obj.id);
+                if (obj.api_id != null) return String(obj.api_id);
+                if (obj.apiTeamId != null) return String(obj.apiTeamId);
+                if (obj.team_id != null) return String(obj.team_id);
+                if (obj._id != null) return String(obj._id);
+                return '';
+            }
+
+            function getTeamId(objOrId, nameOverride) {
+                let id = '';
+                if (objOrId == null) id = '';
+                else if (typeof objOrId === 'string' || typeof objOrId === 'number') id = String(objOrId);
+                else id = resolveTeamId(objOrId);
+
+                const namesToTry = [];
+                if (nameOverride) namesToTry.push(nameOverride);
+                if (objOrId && typeof objOrId === 'object') {
+                    if (objOrId.name) namesToTry.push(objOrId.name);
+                    if (objOrId.shortName) namesToTry.push(objOrId.shortName);
+                    if (objOrId.short_code) namesToTry.push(objOrId.short_code);
+                    if (objOrId.teamName) namesToTry.push(objOrId.teamName);
+                    if (objOrId.team && typeof objOrId.team === 'object') {
+                        if (objOrId.team.name) namesToTry.push(objOrId.team.name);
+                        if (objOrId.team.shortName) namesToTry.push(objOrId.team.shortName);
+                    }
+                    if (objOrId.data && typeof objOrId.data === 'object') {
+                        if (objOrId.data.name) namesToTry.push(objOrId.data.name);
+                        if (objOrId.data.shortName) namesToTry.push(objOrId.data.shortName);
+                    }
+                }
+
+                for (const name of namesToTry) {
+                    if (!name) continue;
+                    const exact = nameToSportmonksId[String(name).trim()];
+                    if (exact) return String(exact);
+                    const nk = normalizeNameForMap(name);
+                    if (nk && nameToSportmonksIdNormalized[nk]) return String(nameToSportmonksIdNormalized[nk]);
+                }
+
+                if (!id) {
+                    id = id || '';
+                }
+
+                return id || '';
+            }
+
+            function teamLinkHtml(teamId, teamName) {
+                const id = teamId == null ? '' : String(teamId);
+                const name = escapeHtml(teamName || '');
+                if (!id) return `<span class="team-name">${name}</span>`;
+                return `<a href="/squad/${encodeURIComponent(id)}" class="team-name">${name}</a>`;
             }
 
             const subscriptions = {};
@@ -358,8 +456,8 @@
 
                 if (team.crest) {
                     html += `<div class="text-center mb-4">
-                            <img src="${escapeHtml(team.crest)}" alt="${escapeHtml(team.name || 'Team')}" class="img-fluid" style="max-width: 120px; max-height: 120px;">
-                        </div>`;
+                                <img src="${escapeHtml(team.crest)}" alt="${escapeHtml(team.name || 'Team')}" class="img-fluid" style="max-width: 120px; max-height: 120px;">
+                            </div>`;
                 }
 
                 html += `<h4 class="text-center mb-3 fw-bold">${escapeHtml(team.name || team.shortName || 'Unknown Team')}</h4>`;
@@ -392,8 +490,8 @@
 
                 if (team.website) {
                     html += `<div class="col-12 mt-2"><a href="${escapeHtml(team.website)}" target="_blank" class="btn btn-sm btn-outline-primary w-100">
-                            <i class="fas fa-external-link-alt me-1"></i> Visit Official Website
-                        </a></div>`;
+                                <i class="fas fa-external-link-alt me-1"></i> Visit Official Website
+                            </a></div>`;
                 }
 
                 const teamId = team.id != null ? String(team.id) : '';
@@ -403,15 +501,15 @@
 
                 if (teamId) {
                     html += `<div class="col-12 mt-2">
-                            <a class="btn btn-sm btn-outline-primary w-100 team-next-action-btn js-team-next-action d-none"
-                               href="/team/${encodeURIComponent(teamId)}/fixtures"
-                               data-team-id="${escapeHtml(teamId)}"
-                               data-team-name="${escapeHtml(teamName)}"
-                               data-team-short-name="${escapeHtml(shortName)}"
-                               data-team-tla="${escapeHtml(tla)}">
-                               See Next ${escapeHtml(teamName)} Games
-                            </a>
-                        </div>`;
+                                <a class="btn btn-sm btn-outline-primary w-100 team-next-action-btn js-team-next-action d-none"
+                                   href="/team/${encodeURIComponent(teamId)}/fixtures"
+                                   data-team-id="${escapeHtml(teamId)}"
+                                   data-team-name="${escapeHtml(teamName)}"
+                                   data-team-short-name="${escapeHtml(shortName)}"
+                                   data-team-tla="${escapeHtml(tla)}">
+                                   See Next ${escapeHtml(teamName)} Games
+                                </a>
+                            </div>`;
                 }
 
                 html += '</div>';
@@ -477,21 +575,21 @@
                     const away = (ev.participants || []).find(p => p.type === 'visitor') || ev.visitorTeam || {};
                     const score = (ev.scores && ev.scores.ft) ? `${ev.scores.ft.home || 0} - ${ev.scores.ft.away || 0}` : (ev.time || ev.status || '0 - 0');
                     const league = ev.league ? ev.league.data?.name || '' : (ev.league?.name || '');
-                    const hid = home.id || home.team_id || home.data?.id || home._id || home.id_team || '';
-                    const aid = away.id || away.team_id || away.data?.id || away._id || away.id_team || '';
+                    const hid = getTeamId(home);
+                    const aid = getTeamId(away);
                     html += `
-                            <tr>
-                                <td class="fw-bold">${league}</td>
-                                <td>
-                                    <img src="${home.image_path || ''}" style="width:25px; margin-right:8px;" onerror="this.style.display='none'">${home.name || home.short_code || 'Home'}${teamStarHtml(hid, home.name || '', home.image_path || '')}
-                                </td>
-                                <td class="text-center"><strong>${score}</strong></td>
-                                <td>
-                                    ${away.name || away.short_code || 'Away'}${teamStarHtml(aid, away.name || '', away.image_path || '')}
-                                    <img src="${away.image_path || ''}" style="width:25px; margin-left:8px;" onerror="this.style.display='none'">
-                                </td>
-                                <td class="text-end small text-muted">${ev.time || ev.status || ''}</td>
-                            </tr>`;
+                                <tr>
+                                    <td class="fw-bold">${league}</td>
+                                    <td>
+                                        <img src="${home.image_path || ''}" style="width:25px; margin-right:8px;" onerror="this.style.display='none'">${teamLinkHtml(hid, home.name || home.short_code || 'Home')}${teamStarHtml(hid, home.name || '', home.image_path || '')}
+                                    </td>
+                                    <td class="text-center"><strong>${score}</strong></td>
+                                    <td>
+                                        ${teamLinkHtml(aid, away.name || away.short_code || 'Away')}${teamStarHtml(aid, away.name || '', away.image_path || '')}
+                                        <img src="${away.image_path || ''}" style="width:25px; margin-left:8px;" onerror="this.style.display='none'">
+                                    </td>
+                                    <td class="text-end small text-muted">${ev.time || ev.status || ''}</td>
+                                </tr>`;
                 });
 
                 tbody.innerHTML = html;
@@ -507,18 +605,20 @@
                     const utc = m.utcDate || m.match_date || m.date || null;
                     const when = utc ? new Date(utc).toLocaleString() : (m.status || 'TBD');
 
+                    const homeId = getTeamId(home);
+                    const awayId = getTeamId(away);
                     html += `
-                            <tr>
-                                <td class="fw-bold">${idx + 1}</td>
-                                <td>
-                                    ${home.name || home.shortName || 'Home'}${teamStarHtml(home.id || home.apiTeamId || home.team_id || '', home.name || home.shortName || '', home.crest || home.logo || '')}
-                                </td>
-                                <td class="text-center"><strong>${m.score && m.score.fullTime ? ((m.score.fullTime.homeTeam || 0) + ' - ' + (m.score.fullTime.awayTeam || 0)) : 'vs'}</strong></td>
-                                <td>
-                                    ${away.name || away.shortName || 'Away'}${teamStarHtml(away.id || away.apiTeamId || away.team_id || '', away.name || away.shortName || '', away.crest || away.logo || '')}
-                                </td>
-                                <td class="text-end small text-muted">${when}</td>
-                            </tr>`;
+                                <tr>
+                                    <td class="fw-bold">${idx + 1}</td>
+                                    <td>
+                                        ${teamLinkHtml(homeId, home.name || home.shortName || 'Home')}${teamStarHtml(homeId || '', home.name || home.shortName || '', home.crest || home.logo || '')}
+                                    </td>
+                                    <td class="text-center"><strong>${m.score && m.score.fullTime ? ((m.score.fullTime.homeTeam || 0) + ' - ' + (m.score.fullTime.awayTeam || 0)) : 'vs'}</strong></td>
+                                    <td>
+                                        ${teamLinkHtml(awayId, away.name || away.shortName || 'Away')}${teamStarHtml(awayId || '', away.name || away.shortName || '', away.crest || away.logo || '')}
+                                    </td>
+                                    <td class="text-end small text-muted">${when}</td>
+                                </tr>`;
                 });
 
                 tbody.innerHTML = html;
@@ -536,7 +636,7 @@
 
                 const filtered = table.filter((row) => {
                     const team = row.team || {};
-                    const idStr = team.id != null ? String(team.id) : '';
+                    const idStr = resolveTeamId(team);
                     const nameStr = team.name ? String(team.name) : '';
                     if (q && !nameStr.toLowerCase().includes(q)) return false;
                     if (onlyFav) return idStr && favoritesSet.has(idStr);
@@ -552,30 +652,30 @@
                 filtered.forEach((row) => {
                     const pos = row.position ?? '';
                     const team = row.team || {};
-                    const teamId = team.id != null ? String(team.id) : '';
+                    const teamId = getTeamId(team, team.name);
                     const teamName = team.name || '';
                     const crest = team.crest || team.crestUrl || '';
                     const fav = teamId && favoritesSet.has(teamId);
 
                     html += `
-                            <tr class="${rowClass(pos)}">
-                                <td class="pos-col"><span class="pos-pill">${escapeHtml(pos)}</span></td>
-                                <td>
-                                    <div class="team-cell">
-                                        <button type="button" class="favorite-team-btn ${fav ? 'is-favorited' : ''}" data-team-id="${escapeHtml(teamId)}" data-team-name="${encodeURIComponent(teamName)}" data-team-crest="${encodeURIComponent(crest)}" aria-label="Favorite team">
-                                            <i class="${fav ? 'fas' : 'far'} fa-star"></i>
-                                        </button>
-                                        <img class="team-crest" src="${escapeHtml(crest)}" onerror="this.style.display='none'">
-                                        <span class="team-name">${escapeHtml(teamName)}</span>
-                                    </div>
-                                </td>
-                                <td class="text-center">${escapeHtml(row.playedGames ?? '')}</td>
-                                <td class="text-center">${escapeHtml(row.won ?? '')}</td>
-                                <td class="text-center">${escapeHtml(row.draw ?? '')}</td>
-                                <td class="text-center">${escapeHtml(row.lost ?? '')}</td>
-                                <td class="text-center">${escapeHtml(row.goalDifference ?? '')}</td>
-                                <td class="text-center fw-bold">${escapeHtml(row.points ?? '')}</td>
-                            </tr>`;
+                                <tr class="${rowClass(pos)}">
+                                    <td class="pos-col"><span class="pos-pill">${escapeHtml(pos)}</span></td>
+                                    <td>
+                                        <div class="team-cell">
+                                            <button type="button" class="favorite-team-btn ${fav ? 'is-favorited' : ''}" data-team-id="${escapeHtml(teamId)}" data-team-name="${encodeURIComponent(teamName)}" data-team-crest="${encodeURIComponent(crest)}" aria-label="Favorite team">
+                                                <i class="${fav ? 'fas' : 'far'} fa-star"></i>
+                                            </button>
+                                            <img class="team-crest" src="${escapeHtml(crest)}" onerror="this.style.display='none'">
+                                            ${teamLinkHtml(teamId, teamName)}
+                                        </div>
+                                    </td>
+                                    <td class="text-center">${escapeHtml(row.playedGames ?? '')}</td>
+                                    <td class="text-center">${escapeHtml(row.won ?? '')}</td>
+                                    <td class="text-center">${escapeHtml(row.draw ?? '')}</td>
+                                    <td class="text-center">${escapeHtml(row.lost ?? '')}</td>
+                                    <td class="text-center">${escapeHtml(row.goalDifference ?? '')}</td>
+                                    <td class="text-center fw-bold">${escapeHtml(row.points ?? '')}</td>
+                                </tr>`;
                 });
 
                 tbody.innerHTML = html;
@@ -586,7 +686,7 @@
                 let html = tbody.innerHTML;
 
                 html += `
-                        <tr><td colspan="8"><hr></td></tr>`;
+                            <tr><td colspan="8"><hr></td></tr>`;
 
                 matches.forEach((m) => {
                     const homeObj = m.homeTeam || (m.home || {});
@@ -596,17 +696,19 @@
                     const utc = m.utcDate || m.match_date || m.date || null;
                     const when = utc ? new Date(utc).toLocaleString() : (m.status || 'TBD');
 
+                    const hId = getTeamId(homeObj);
+                    const aId = getTeamId(awayObj);
                     html += `
-                            <tr class="table-secondary">
-                                <td></td>
-                                <td>${home}${teamStarHtml(homeObj.id || homeObj.apiTeamId || homeObj.team_id || '', home, homeObj.crest || homeObj.logo || '')}</td>
-                                <td class="text-center"><strong>vs</strong></td>
-                                <td>${away}${teamStarHtml(awayObj.id || awayObj.apiTeamId || awayObj.team_id || '', away, awayObj.crest || awayObj.logo || '')}</td>
-                                <td class="text-end small text-muted">${when}</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>`;
+                                <tr class="table-secondary">
+                                    <td></td>
+                                    <td>${teamLinkHtml(hId, home)}${teamStarHtml(hId || '', home, homeObj.crest || homeObj.logo || '')}</td>
+                                    <td class="text-center"><strong>vs</strong></td>
+                                    <td>${teamLinkHtml(aId, away)}${teamStarHtml(aId || '', away, awayObj.crest || awayObj.logo || '')}</td>
+                                    <td class="text-end small text-muted">${when}</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>`;
                 });
 
                 tbody.innerHTML = html;
