@@ -6,6 +6,7 @@ use App\Http\Controllers\TicketController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\FootballController as ApiFootballController;
 use App\Http\Controllers\StadiumController;
 use App\Http\Controllers\Admin\UserController;
@@ -35,6 +36,16 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
+Route::get('/verify-email', [RegisterController::class, 'showVerifyForm'])->name('email.verify.form');
+Route::post('/verify-email', [RegisterController::class, 'verifyCode'])->name('email.verify.code');
+Route::post('/resend-verification', [RegisterController::class, 'resendCode'])->name('email.resend.code');
+
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showRequestForm'])->name('password.request');
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendCode'])->name('password.send.code');
+Route::get('/verify-code', [ForgotPasswordController::class, 'showVerifyForm'])->name('password.verify.form');
+Route::post('/verify-code', [ForgotPasswordController::class, 'verifyCode'])->name('password.verify.code');
+Route::get('/reset-password', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset.form');
+Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
 
 Route::middleware([RoleMiddleware::class . ':admin'])->group(function () {
     Route::get('/admin/tickets/{gameId}', [PriceController::class, 'manage'])->name('admin.tickets.manage');

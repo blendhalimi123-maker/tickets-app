@@ -19,17 +19,23 @@ class LoginController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+
+            if (is_null($user->email_verified_at)) {
+                Auth::logout();
+                return redirect()->route('email.verify.form', ['email' => $user->email])
+                    ->withErrors(['email' => 'Please verify your email first.']);
+            }
+
             $request->session()->regenerate();
 
-            // Notify admins 
             try {
-                event(new UserLoggedIn(Auth::user()));
+                event(new UserLoggedIn($user));
             } catch (\Throwable $e) {
                 \Log::warning('UserLoggedIn broadcast failed: ' . $e->getMessage());
             }
 
-            
-            if (Auth::user()->role === 'admin') {
+            if ($user->role === 'admin') {
                 return redirect()->intended('/admin');
             } else {
                 return redirect()->intended('/dashboard');

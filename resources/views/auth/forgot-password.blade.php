@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -19,9 +20,9 @@
 </head>
 <body class="d-flex align-items-center justify-content-center vh-100">
 
-<div class="card shadow-sm p-5" style="width: 100%; max-width: 400px;">
-    <h2 class="text-center mb-4 fw-bold">Welcome Back!</h2>
-    <p class="text-center text-muted mb-4">Log in to continue and explore amazing events.</p>
+<div class="card shadow-sm p-5" style="width: 100%; max-width: 420px;">
+    <h2 class="text-center mb-3 fw-bold">Forgot Password?</h2>
+    <p class="text-center text-muted mb-4">Enter your email and we'll send you a 6-digit reset code.</p>
 
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
@@ -37,42 +38,21 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('login.submit') }}">
+    <form method="POST" action="{{ route('password.send.code') }}">
         @csrf
-
         <div class="mb-3">
             <input type="email" name="email" class="form-control form-control-lg @error('email') is-invalid @enderror" placeholder="Email Address" value="{{ old('email') }}" required autofocus>
-            @error('email')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <div class="mb-3">
-            <input type="password" name="password" class="form-control form-control-lg @error('password') is-invalid @enderror" placeholder="Password" required>
-            @error('password')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <div class="form-check mb-3">
-            <input type="checkbox" class="form-check-input" name="remember" id="remember">
-            <label class="form-check-label" for="remember">Remember me</label>
         </div>
 
         <div class="d-grid mb-3">
-            <button type="submit" class="btn btn-primary btn-lg">Login</button>
+            <button type="submit" class="btn btn-primary btn-lg">Send Reset Code</button>
         </div>
 
-        <p class="text-center mb-2">
-            <a href="{{ route('password.request') }}" class="text-muted">Forgot your password?</a>
-        </p>
-
         <p class="text-center text-muted mb-0">
-            Don't have an account? <a href="{{ route('register') }}" class="text-primary fw-bold">Register</a>
+            <a href="{{ route('login') }}" class="text-primary fw-bold">Back to Login</a>
         </p>
     </form>
 </div>
-
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
